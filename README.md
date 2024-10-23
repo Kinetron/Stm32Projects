@@ -19,4 +19,5 @@ The signal is generated at the output PB11.
 
 The generated frequency list can be found in the file \LfSignalGenerator\FrequencyTable.txt
 
+![Alt text](./LfSignalGenerator/device.jpg  "a title")
 
