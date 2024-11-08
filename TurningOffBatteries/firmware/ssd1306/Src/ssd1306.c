@@ -320,11 +320,14 @@ uint8_t _getSpecialCharacters7x10_Pos(char ch)
         //B
         case 0x42: return 2;
 
+        //V
+         case 0x56: return 3;
+
         //h
-        case 0x68: return 3;
+        case 0x68: return 4;
 
         //%
-        case 0x25: return 4;
+        case 0x25: return 5;
     
     default: return 1;
     }

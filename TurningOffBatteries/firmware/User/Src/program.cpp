@@ -12,6 +12,7 @@ extern IWDG_HandleTypeDef hiwdg;
 extern ADC_HandleTypeDef hadc1;
 extern TIM_HandleTypeDef htim2;
 
+#define LANGUAGE_EN
 #define DISPLAY_VOLTAGE 0
 #define DISPLAY_PERCENTS 1
 
@@ -85,7 +86,7 @@ void printDisplayParameter(float data, uint8_t paramType, bool shortFormat)
    }
    
 
-   char* simvol = "B";
+   char* simvol = "V";
 
    switch (paramType)
    {
@@ -148,7 +149,12 @@ void loop( void )
 
       ssd1306_Fill(Black);
       ssd1306_SetCursor(0, 0);
-      ssd1306_PrintString("Напряжение питания", 2);
+
+      #ifdef LANGUAGE_EN
+          ssd1306_WriteString("Supply voltage", Font_7x10, White);
+      #else
+          ssd1306_PrintString("Напряжение питания", 2);         
+      #endif     
 
       currentVoltage = (float)(adcResults[0]) * ADC_REFERENCE_VOLTAGE * DIVISION_COEFFICIENTS_VOLTAGE / 40960;
       printDisplayParameter(currentVoltage, DISPLAY_VOLTAGE, false);
