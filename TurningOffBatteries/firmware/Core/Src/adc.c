@@ -107,11 +107,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     GPIO_InitStruct.Pin = GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
+    
     /* ADC1 DMA Init */
     /* ADC1 Init */
     hdma_adc1.Instance = DMA1_Channel1;
