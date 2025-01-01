@@ -30,7 +30,7 @@ This device allows you to monitor the operation of the wind turbine in real time
 and check the parameters of new developments.
 
 An external computer and .Net program are used for monitoring.
-This device can also be used to measure engine speed(need convert Hz to RPM).
+This device can also be used to measure motor speed(need convert Hz to RPM).
 
 ![board full](./FrequencyMeter/doc/img/device.jpg)
 
@@ -38,4 +38,4 @@ This device can also be used to measure engine speed(need convert Hz to RPM).
 ![button board](./FrequencyMeter/doc/img/PcApp.jpg)
 
 
-[More](./FrequencyMeter/doc/README.md)
+[More](./FrequencyMeter/README.md)
