@@ -21,3 +21,21 @@ The generated frequency list can be found in the file \LfSignalGenerator\Frequen
 
 ![Alt text](./LfSignalGenerator/device.jpg  "a title")
 
+
+## Low frequency meter for wind generator
+
+When setting up a wind turbine, you need a frequency meter with the
+ ability to measure the  rotation speed in the range of 1-100 Hz.
+This device allows you to monitor the operation of the wind turbine in real time,
+and check the parameters of new developments.
+
+An external computer and .Net program are used for monitoring.
+This device can also be used to measure engine speed(need convert Hz to RPM).
+
+![board full](./FrequencyMeter/doc/img/device.jpg)
+
+Сomputer program window
+![button board](./FrequencyMeter/doc/img/PcApp.jpg)
+
+
+[More](./FrequencyMeter/doc/README.md)
