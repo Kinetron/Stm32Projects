@@ -1,6 +1,18 @@
 # Stm32Projects
 Projects on microcontroller STM32 
 
+## Turning off the hard drive when the battery is low
+
+My DVR is powered by 12 volts.
+When the power is turned off,
+ the device is powered by a lithium battery.
+
+If the battery is discharged to 10 volts, the hard drive starts clicking.
+To prevent this from happening, we turn off the DVR's power at 10 volts.
+
+![button board](./TurningOffBatteries/img/workDevice.jpg)
+
+[More](./TurningOffBatteries/README.md)
 
 ## LfSignalGenerator
 
@@ -19,7 +31,7 @@ The signal is generated at the output PB11.
 
 The generated frequency list can be found in the file \LfSignalGenerator\FrequencyTable.txt
 
-![Alt text](./LfSignalGenerator/device.jpg  "a title")
+![signal generator](./LfSignalGenerator/device.jpg  "signal generator")
 
 
 ## Low frequency meter for wind generator
