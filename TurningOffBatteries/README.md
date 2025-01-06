@@ -35,3 +35,14 @@ The firmware is loaded via UART.
 
 The relay is higher than the box, I had to make a hole.
 ![button board](./img/inBox.jpg)
+
+This device is part of UPS for supply digital video recorder and cameras.
+Full USP contains AC-DC,  diodes board with charger and a battery.
+
+![button board](./img/upsBoard.jpg)
+![button board](./img/upsBoard1.jpg)
+
+![button board](./img/ups.jpg)
+![button board](./img/load.jpg)
+
+The current consumed by the load is 2.5A.
