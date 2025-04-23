@@ -17,6 +17,8 @@ bool secondTimerHandler = false; //one second has passed
 bool blink;
 int digSwitch = 0;
 
+uint8_t currentSegment;
+
 const uint8_t ledMatrix[LED_MATRIX_SIZE] =
 {
   0x0A, //0
@@ -41,22 +43,20 @@ const uint8_t ledMatrix[LED_MATRIX_SIZE] =
   0x13, //H
 };
 
-/**
- * \brief  Performs additional settings.
- *
- */
-void setup( void )
+void initLed()
 {
-    //HAL_IWDG_Refresh(&hiwdg);
-    //HAL_Delay(500);    
-    //HAL_IWDG_Refresh(&hiwdg);
-    
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); //Off segment 1
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //Off segment 2
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET); //Off segment 3
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); //Off segment 1
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //Off segment 2
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET); //Off segment 3
 
-    //GPIOA->ODR |= 0xFFFF; //Off anods.
-    //GPIOB->ODR |= 0xFFFF;  
+  //off anods
+  GPIOA->ODR |= 0x0F0;    
+  GPIOB->ODR |= 0xC03; 
+}
+
+void setup( void )
+{  
+    
 }
 
 //Convert dig to 7 seg led matrix.
@@ -90,17 +90,13 @@ void loop( void )
 {   
     //HAL_IWDG_Refresh(&hiwdg);
     
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
 
     //Second timer.
     if(secondTimerHandler == true)
     {
       //HAL_IWDG_Refresh(&hiwdg);  
-      
-      //off anods
-      GPIOA->ODR |= 0x0F0;    
-      GPIOB->ODR |= 0xC03; 
-
+    
       //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
       if(blink)
       {
@@ -113,20 +109,48 @@ void loop( void )
         blink = true;              
       } 
       
-      if(digSwitch < 22)
-      {
-        digToSegments(digSwitch);
-        digSwitch++;
-      }
-      else
-      {
-        digSwitch = 0;
-      }
-
+     
       secondTimerHandler = false;
     }   
 
     //GPIOA->ODR &= 0xFF0F; 
+}
+
+void dynamicIndication()
+{
+   //off anods
+   GPIOA->ODR |= 0x0F0;    
+   GPIOB->ODR |= 0xC03; 
+
+   switch (currentSegment)
+   {
+     case 0:
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); //Off segment 1
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //Off segment 2
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET); //Off segment 3
+        digToSegments(3);
+        currentSegment = 1;              
+     break;
+   
+     case 1:
+       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); //Off segment 1
+       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET); //Off segment 2
+       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET); //Off segment 3
+       digToSegments(2);
+       currentSegment = 2;
+     break;
+
+     case 2:
+       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET); //Off segment 1
+       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //Off segment 2
+       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET); //Off segment 3
+       digToSegments(1);
+       currentSegment = 0;    
+     break;
+
+    default:
+    break;
+   }
 }
 
 void HAL_SYSTICK_Callback(void)
@@ -139,15 +163,12 @@ void HAL_SYSTICK_Callback(void)
     }    
 }
 
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-   
-}
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {   
  if (htim->Instance == TIM3)
-   {      
+ { 
+    dynamicIndication();
+
     /*
       if(numberMeasurements < MAX_QUANTITY_MEASUREMENTS)
       {

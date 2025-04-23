@@ -56,6 +56,7 @@ void Error_Handler(void);
 void init( void );
 void setup( void );
 void loop( void );
+void initLed( void );
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
