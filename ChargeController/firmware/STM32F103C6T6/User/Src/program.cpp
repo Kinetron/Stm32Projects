@@ -8,13 +8,18 @@
 
 #define LED_MATRIX_SIZE 21
 #define OFF_LED_SEGMENT_VALUE 20
-#define ADC_NUMBER_OF_CHANNELS 1
+#define ADC_NUMBER_OF_CHANNELS 3
 #define MAX_QUANTITY_MEASUREMENTS 16
 #define ADC_REFERENCE_VOLTAGE 33.0 //~3.3*10
 #define DIVISION_COEFFICIENTS_VOLTAGE 6.067 //20k 1% + 100k 1%divider
-#define DISPLAY_BLINK_VOLTAGE 14.0
+#define DIVISION_COEFFICIENTS_CURRENT 11.600
+#define DISPLAY_BLINK_VOLTAGE 14.65
 
 #define BLINK_LED_INTERVAL 70
+#define CHANGE_INDICATION_PERIOD 5 //switch U and I on display.
+
+#define MAX_PWM_CURRENT 8
+#define DEFAULT_PWM_VALUE 0x64 //50%
 
 extern IWDG_HandleTypeDef hiwdg;
 extern ADC_HandleTypeDef hadc1;
@@ -65,6 +70,12 @@ uint32_t adcAvgBuff[ADC_NUMBER_OF_CHANNELS];
 uint32_t adcResults[ADC_NUMBER_OF_CHANNELS];
 uint8_t numberMeasurements = 0;
 
+uint16_t softPwmTimer;
+uint16_t softPwmValue;
+
+uint8_t changeIndicationTimer;
+bool changeIndicationSwitch;
+
 void initLed()
 {
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); //Off segment 1
@@ -79,7 +90,9 @@ void initLed()
 void setup( void )
 {  
    HAL_ADC_Start_DMA(&hadc1, adcData, ADC_NUMBER_OF_CHANNELS); // start adc in DMA mode 
-   HAL_IWDG_Refresh(&hiwdg);   
+   HAL_IWDG_Refresh(&hiwdg);
+   changeIndicationSwitch = true;
+   softPwmValue = DEFAULT_PWM_VALUE;
 }
 
 //Convert dig to 7 seg led matrix.
@@ -165,6 +178,62 @@ void hexToDec(uint16_t value)
   memcpy(displayArray, digits, 3);
 }
 
+//Software PWM
+void softPwm()
+{  
+   if(softPwmTimer < 0xFF)
+   {
+    //Hi pulse level.
+    if(softPwmTimer < softPwmValue)
+    {
+      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
+    }
+     else
+    {
+       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
+    }
+     softPwmTimer ++; 
+   }
+   else
+   {
+    softPwmTimer = 0;
+   }
+}
+
+//Switch on display voltage or current.
+bool changeIndicationParam()
+{
+   if(changeIndicationTimer < CHANGE_INDICATION_PERIOD)
+   {
+     changeIndicationTimer ++;
+   }
+   else
+   {
+     changeIndicationTimer = 0;
+     changeIndicationSwitch = !changeIndicationSwitch;
+   }
+
+   return changeIndicationSwitch;
+}
+
+void pwmControl(float current)
+{
+  if(current > MAX_PWM_CURRENT)
+  {
+    softPwmValue = 0xFF;
+    return;
+  }
+
+  float pwm = (current / MAX_PWM_CURRENT) * 0xFF;
+
+  if(pwm < DEFAULT_PWM_VALUE)
+  {
+    return;
+  }
+  
+  softPwmValue = pwm;
+}
+
 /**
  * \brief   It is performed periodically in the body of the main loop.
  *
@@ -174,11 +243,19 @@ void loop( void )
     //Second timer.
     if(secondTimerHandler == true)
     {
-      float currentVoltage = (float)(adcResults[0]) * ADC_REFERENCE_VOLTAGE * DIVISION_COEFFICIENTS_VOLTAGE / 40960;
+      float voltage = (float)(adcResults[1]) * ADC_REFERENCE_VOLTAGE * DIVISION_COEFFICIENTS_VOLTAGE / 40960;
+      float current = (float)(adcResults[0]) * ADC_REFERENCE_VOLTAGE * DIVISION_COEFFICIENTS_CURRENT / 40960;
       
+      float resutValue = voltage;
+
+      if(!changeIndicationParam())
+      {
+        resutValue = current;
+      }
+
       uint8_t mux = 100;
       //Switch point and mux.
-      if(currentVoltage < 9.990)
+      if(resutValue < 9.990)
       {
         pointData = (pointData & 0x01) | 0x04;
       }
@@ -188,10 +265,10 @@ void loop( void )
         mux = 10;
       }
 
-      displayValue = (uint16_t)(currentVoltage * mux);
+      displayValue = (uint16_t)(resutValue * mux);
       
       //Blink if charge end
-      if(currentVoltage >= DISPLAY_BLINK_VOLTAGE)
+      if(voltage >= DISPLAY_BLINK_VOLTAGE)
       {
         needBlink = true;
       } 
@@ -201,11 +278,14 @@ void loop( void )
       }
 
       secondTimerHandler = false;
+
+      pwmControl(current);
     }   
 
     hexToDec(displayValue);
-    HAL_IWDG_Refresh(&hiwdg);  
-}
+    HAL_IWDG_Refresh(&hiwdg);
+    softPwm();
+  }
 
 //Soft timer.
 bool blinkLedTimerHandler()
