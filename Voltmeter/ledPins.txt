@@ -1,0 +1,23 @@
+
+
+13 PA3 base transistor1
+14 PA4 a
+15 PA5 f
+16 PA6 e
+17 PA7 b
+
+00001111 
+ 
+
+18 PB0 d     FE  0011 0      
+19 PB1 dp         1
+ 
+21 PB10 c    0011 F3 2    1100
+22 PB11 g            3
+
+        1100
+
+25 PB12 base transistor2
+26 PB13 base transistor3
+
+
