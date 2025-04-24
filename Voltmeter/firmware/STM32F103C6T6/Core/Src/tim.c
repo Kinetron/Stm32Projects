@@ -40,7 +40,7 @@ void MX_TIM3_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   
   //Period = (ARR + 1)(PSK + 1) / Fclk
-  //64 000 000 / 65534 /
+  //64 000 000 / 65534 / 5 = 195 hz
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 65534; //976
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
