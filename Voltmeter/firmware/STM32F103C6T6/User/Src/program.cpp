@@ -8,15 +8,23 @@
 
 #define LED_MATRIX_SIZE 21
 #define OFF_LED_SEGMENT_VALUE 20
+#define ADC_NUMBER_OF_CHANNELS 1
+#define MAX_QUANTITY_MEASUREMENTS 16
+#define ADC_REFERENCE_VOLTAGE 33.0 //~3.3*10
+#define DIVISION_COEFFICIENTS_VOLTAGE 6.067 //20k 1% + 100k 1%divider
+#define DISPLAY_BLINK_VOLTAGE 14.0
+
+#define BLINK_LED_INTERVAL 70
 
 extern IWDG_HandleTypeDef hiwdg;
+extern ADC_HandleTypeDef hadc1;
 
 volatile uint32_t TimeTickMs = 0;
 uint32_t oldTimeTickHSec = 0;
 
 bool secondTimerHandler = false; //one second has passed
 
-uint8_t currentSegment;
+uint8_t currentSegment; //For dynamic led.
 
 const uint8_t ledMatrix[LED_MATRIX_SIZE] =
 {
@@ -45,7 +53,17 @@ const uint8_t ledMatrix[LED_MATRIX_SIZE] =
 
 uint8_t pointData; //which digits the dot be displayed
 uint8_t displayArray[3] = {0, 0, 0};
+uint8_t displayBuffer[3] = {0, 0, 0};
 uint16_t displayValue;
+bool needBlink;
+
+uint16_t blinkLedTimer;
+uint8_t blinkLedDirection;
+
+uint32_t adcData[ADC_NUMBER_OF_CHANNELS]; //Measured adc values.
+uint32_t adcAvgBuff[ADC_NUMBER_OF_CHANNELS];
+uint32_t adcResults[ADC_NUMBER_OF_CHANNELS];
+uint8_t numberMeasurements = 0;
 
 void initLed()
 {
@@ -60,7 +78,8 @@ void initLed()
 
 void setup( void )
 {  
-    
+   HAL_ADC_Start_DMA(&hadc1, adcData, ADC_NUMBER_OF_CHANNELS); // start adc in DMA mode 
+   HAL_IWDG_Refresh(&hiwdg);   
 }
 
 //Convert dig to 7 seg led matrix.
@@ -97,7 +116,7 @@ void digToSegments(uint8_t dig, uint8_t point)
    GPIOB->ODR &= msb;   
 }
 
-//Disables zeros in the higher registers.
+//Disables zeros in the higher registers. If need.
 void offZeros(uint8_t *arr)
 {
   bool msbZero = true;
@@ -142,7 +161,7 @@ void hexToDec(uint16_t value)
 		digits[0]++;
 	}	
  
-  offZeros(digits);
+  //offZeros(digits);
   memcpy(displayArray, digits, 3);
 }
 
@@ -151,40 +170,83 @@ void hexToDec(uint16_t value)
  *
  */
 void loop( void )
-{   
-    //HAL_IWDG_Refresh(&hiwdg);
-    
-    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
-
+{  
     //Second timer.
     if(secondTimerHandler == true)
     {
-      //HAL_IWDG_Refresh(&hiwdg);  
-    
-      //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);     
-      displayValue ++;
-
-      if(pointData == 0)
+      float currentVoltage = (float)(adcResults[0]) * ADC_REFERENCE_VOLTAGE * DIVISION_COEFFICIENTS_VOLTAGE / 40960;
+      
+      uint8_t mux = 100;
+      //Switch point and mux.
+      if(currentVoltage < 9.990)
       {
-        pointData =1;
-      }
-
-      if(pointData < 8)
-      {
-        pointData <<= 1;        
+        pointData = (pointData & 0x01) | 0x04;
       }
       else
       {
-        pointData = 1;
+        pointData = (pointData & 0x01) | 0x02;
+        mux = 10;
       }
+
+      displayValue = (uint16_t)(currentVoltage * mux);
+      
+      //Blink if charge end
+      if(currentVoltage >= DISPLAY_BLINK_VOLTAGE)
+      {
+        needBlink = true;
+      } 
+      else
+      {
+        needBlink = false;
+      }
+
       secondTimerHandler = false;
     }   
 
     hexToDec(displayValue);
+    HAL_IWDG_Refresh(&hiwdg);  
 }
 
+//Soft timer.
+bool blinkLedTimerHandler()
+{  
+   if(!blinkLedDirection)
+   {
+      if(blinkLedTimer < BLINK_LED_INTERVAL)
+      {
+        blinkLedTimer ++;
+        return false;
+      }
+      else
+      {
+        blinkLedDirection = 1;
+        return true;
+      }
+   }
+   else
+   {
+      if(blinkLedTimer)
+      {
+        blinkLedTimer --;
+        return true;
+      }
+      else
+      {
+        blinkLedDirection = 0;
+        return false;
+      }
+   } 
+}
+
+//Generate a dynamic indication
 void dynamicIndication()
-{
+{  
+  memcpy(displayBuffer, displayArray, 3); 
+  
+  if(needBlink == true && blinkLedTimerHandler())
+  {
+    memset(displayBuffer, OFF_LED_SEGMENT_VALUE, 3); //Off display.
+  }
 
   uint8_t pointOn = 0;
    //off anods
@@ -198,7 +260,7 @@ void dynamicIndication()
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //Off segment 2
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET); //Off segment 3
         pointOn = pointData & 0x01;
-        digToSegments(displayArray[0], pointOn);
+        digToSegments(displayBuffer[0], pointOn);
         currentSegment = 1;              
      break;
    
@@ -207,7 +269,7 @@ void dynamicIndication()
        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET); //Off segment 2
        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET); //Off segment 3
        pointOn = (pointData & 0x02) >> 1;
-       digToSegments(displayArray[1], pointOn);
+       digToSegments(displayBuffer[1], pointOn);
        currentSegment = 2;
      break;
 
@@ -216,7 +278,7 @@ void dynamicIndication()
        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //Off segment 2
        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET); //Off segment 3
        pointOn = (pointData & 0x04) >> 2;
-       digToSegments(displayArray[2], pointOn);
+       digToSegments(displayBuffer[2], pointOn);
        currentSegment = 0;    
      break;
 
@@ -225,24 +287,9 @@ void dynamicIndication()
    }
 }
 
-void HAL_SYSTICK_Callback(void)
+void calculateAdc()
 {
-    TimeTickMs++;
-    if (TimeTickMs - oldTimeTickHSec > 1000)
-    {
-      oldTimeTickHSec = TimeTickMs;
-      secondTimerHandler = true;
-    }    
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-{   
- if (htim->Instance == TIM3)
- { 
-    dynamicIndication();
-
-    /*
-      if(numberMeasurements < MAX_QUANTITY_MEASUREMENTS)
+  if(numberMeasurements < MAX_QUANTITY_MEASUREMENTS)
       {
          for(uint8_t i = 0; i < ADC_NUMBER_OF_CHANNELS; i++)
          {
@@ -260,6 +307,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
          }
 
          numberMeasurements = 0;
-      }*/    
-   }
+      }    
+}
+
+void HAL_SYSTICK_Callback(void)
+{
+    TimeTickMs++;
+    if (TimeTickMs - oldTimeTickHSec > 1000)
+    {
+      oldTimeTickHSec = TimeTickMs;
+      secondTimerHandler = true;
+    }    
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{   
+ if (htim->Instance == TIM3)
+ { 
+    dynamicIndication();
+    calculateAdc();     
+ }
 }
