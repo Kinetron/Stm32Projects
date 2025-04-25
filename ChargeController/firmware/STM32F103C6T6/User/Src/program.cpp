@@ -19,7 +19,7 @@
 #define CHANGE_INDICATION_PERIOD 5 //switch U and I on display.
 
 #define MAX_PWM_CURRENT 8
-#define DEFAULT_PWM_VALUE 0x64 //50%
+#define DEFAULT_PWM_VALUE 0x20 //6.37v fan
 
 extern IWDG_HandleTypeDef hiwdg;
 extern ADC_HandleTypeDef hadc1;
@@ -228,6 +228,7 @@ void pwmControl(float current)
 
   if(pwm < DEFAULT_PWM_VALUE)
   {
+    softPwmValue = DEFAULT_PWM_VALUE;
     return;
   }
   

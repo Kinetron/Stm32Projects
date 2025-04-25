@@ -1,0 +1,15 @@
+
+
+
+
+mc34063
+270 mH inductor
+11k + 18k divider 
+0.47R
+SS16 diode
+
+a display with a common anode
+2SA1015 led anode 2,2k in base
+330R led catode resistors
+
+100k+20k 1% voltage divider
