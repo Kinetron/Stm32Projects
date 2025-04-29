@@ -51,3 +51,13 @@ This device can also be used to measure motor speed(need convert Hz to RPM).
 
 
 [More](./FrequencyMeter/README.md)
+
+## Display board for the charger STM32F103C6T6
+The board displays the current, voltage and controls the fan rotation. When the battery voltage reaches 14.7 volts, the indicator starts flashing.
+The voltage and current on the indicator switch automatically every 5 seconds.
+
+It was necessary to charge the LiFePol battery 100Ah. I bought a power supply for a LED strip(12v 29A) and redid it.
+![battery](./ChargeController/photo/fullDevice.jpg)
+![battery](./ChargeController/photo/battery.jpg)
+
+[More](./ChargeController/README.md)
