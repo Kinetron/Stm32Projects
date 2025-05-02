@@ -80,6 +80,7 @@ bool dataPacketSend; //=true if send.
 uint8_t dataOutPauseCnt; //Pause counter.
 
 bool readTemperatureFlag;
+uint8_t switchTemperature;
 
 void initLed()
 {
@@ -97,7 +98,7 @@ void setup( void )
    HAL_IWDG_Refresh(&hiwdg);
    changeIndicationSwitch = true;
    TIM2->CNT = 247 * 4;  
-   displayValue = 35; //Test
+   displayValue = 38; //Test
 }
 
 //Convert dig to 7 seg led matrix.
@@ -319,7 +320,28 @@ void loop( void )
    {
     //outDataPause(); //Generates a pause after sending a burst of pulses
     requestTemperature();
-    displayValue = getTempatureArr(0);// getTemperatureSensorCount();
+    switch (switchTemperature)
+    {
+      case 0:
+      displayValue = getTempatureArr(0);
+      switchTemperature = 1;
+      break;
+    
+      case 1:
+      displayValue = getTempatureArr(1);
+      switchTemperature = 2;
+      break;
+
+      case 2:
+      displayValue = getTemperatureSensorCount();
+      switchTemperature = 0;
+      break;
+
+    default:
+      break;
+    }  
+
+    // getTemperatureSensorCount();
     //getTemperature();
     secondTimerHandler = false;
    }

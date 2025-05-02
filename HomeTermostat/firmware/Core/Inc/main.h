@@ -33,8 +33,10 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #define DS18B20_Pin_Pin GPIO_PIN_2
 #define DS18B20_Pin_GPIO_Port GPIOA
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

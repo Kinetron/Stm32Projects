@@ -261,6 +261,18 @@ uint8_t DS18B20_Quantity(void)
 	return TempSensorCount;
 }
 
+uint8_t DS18B20_GetValidDataFlag(uint8_t number)
+{
+	return ds18b20[number].ValidDataFlag;
+}
+
+float DS18B20_GetTemperature(uint8_t number)
+{
+   return ds18b20[number].Temperature;	
+}
+
+/*
+//Bad work!
 uint8_t DS18B20_GetTemperature(uint8_t number, float* destination)
 {
 	if(!ds18b20[number].ValidDataFlag)
@@ -270,7 +282,7 @@ uint8_t DS18B20_GetTemperature(uint8_t number, float* destination)
 	return 1;
 
 }
-
+*/
 void DS18B20_Init(DS18B20_Resolution_t resolution)
 {
 	uint8_t next = 0, i = 0, j;

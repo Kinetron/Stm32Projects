@@ -6,7 +6,8 @@
  *      Author: Mateusz Salamon
  *      www.msalamon.pl
  *      mateusz@msalamon.pl
- *  https://github.com/bilalahmaddev/DS18B20-STM32-Blue-Pill-STM32CubeIDE
+ *		https://github.com/bilalahmaddev/DS18B20-STM32-Blue-Pill-STM32CubeIDE
+ *		https://microcontrollerslab.com/ds18b20-temperature-sensor-stm32-blue-pill-stm32cubeide/	
  */
 #ifndef	_DS18B20_H
 #define	_DS18B20_H
@@ -87,6 +88,7 @@ void		DS18B20_GetROM(uint8_t number, uint8_t* ROM); // Get sensor's ROM from 'nu
 void		DS18B20_WriteROM(uint8_t number, uint8_t* ROM); // Write a ROM to 'number' position in sensors table
 // Return functions
 uint8_t 	DS18B20_Quantity(void);	// Returns quantity of connected sensors
-uint8_t		DS18B20_GetTemperature(uint8_t number, float* destination); // Returns 0 if read data is invalid
+float DS18B20_GetTemperature(uint8_t number);
+uint8_t DS18B20_GetValidDataFlag(uint8_t number); // Returns 0 if read data is invalid
 #endif
 

@@ -6,7 +6,9 @@
  *      Author: Mateusz Salamon
  *      www.msalamon.pl
  *      mateusz@msalamon.pl
- *	https://github.com/bilalahmaddev/DS18B20-STM32-Blue-Pill-STM32CubeIDE
+ *		https://github.com/bilalahmaddev/DS18B20-STM32-Blue-Pill-STM32CubeIDE
+ *		https://microcontrollerslab.com/ds18b20-temperature-sensor-stm32-blue-pill-stm32cubeide/	
+ *
  */
 #ifndef ONEWIRE_H
 #define ONEWIRE_H

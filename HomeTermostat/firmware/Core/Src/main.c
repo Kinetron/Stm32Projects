@@ -24,12 +24,9 @@
 #include "gpio.h"
 #include "usart.h"
 #include "adc.h"
-
+#include "ds18b20.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "onewire.h"
-#include "ds18b20.h"
-//extern float Temp[MAXDEVICES_ON_THE_BUS];
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,9 +47,12 @@
 
 /* USER CODE BEGIN PV */
 float temperatureTmp;
+float temperatureBuffer[3];
 uint8_t tempatureSensorQuantity;
-uint16_t tempatureBuf[_DS18B20_MAX_SENSORS];
+uint16_t tempatureBuf[3];//[_DS18B20_MAX_SENSORS];
 uint8_t ROMdata[_DS18B20_MAX_SENSORS];
+
+extern Ds18b20Sensor_t ds18b20[_DS18B20_MAX_SENSORS];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,7 +108,6 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 
   DS18B20_Init(DS18B20_Resolution_12bits);
-
 
   /*
   if(== OW_OK)
@@ -215,19 +214,22 @@ void requestTemperature()
   
   for(uint8_t i = 0; i < tempatureSensorQuantity; i++)
 		{
-			if(DS18B20_GetTemperature(i, &temperatureTmp))
-			{
-				DS18B20_GetROM(i, ROMdata);
-        tempatureBuf[i] = (uint16_t)(temperatureTmp * 10);
-			}
-		}
+      temperatureTmp = 0;
+      if(DS18B20_GetValidDataFlag(i))
+      {
+        tempatureBuf[i] = DS18B20_GetTemperature(i) * 10;  
+      }
+      else
+      {
+        tempatureBuf[i] = 15;
+      }    
+    }    
 }
 
 uint16_t getTempatureArr(uint8_t i)
 {
    return tempatureBuf[i];
 }
-
 
 #ifdef  USE_FULL_ASSERT
 /**
