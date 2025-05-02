@@ -22,11 +22,14 @@
 #include "iwdg.h"
 #include "tim.h"
 #include "gpio.h"
+#include "usart.h"
 #include "adc.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "onewire.h"
+#include "ds18b20.h"
+//extern float Temp[MAXDEVICES_ON_THE_BUS];
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,13 +44,15 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+float temperatureTmp;
+uint8_t tempatureSensorQuantity;
+uint16_t tempatureBuf[_DS18B20_MAX_SENSORS];
+uint8_t ROMdata[_DS18B20_MAX_SENSORS];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,14 +98,28 @@ int main(void)
   //MX_DMA_Init(); 
   MX_TIM2_Init();
   MX_TIM3_Init(); 
-  //MX_ADC1_Init();
+  MX_TIM4_Init(); 
   MX_IWDG_Init();
+  MX_TIM1_Init();
+ // MX_USART1_UART_Init();
 
-  HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_Base_Start_IT(&htim3); //Enable interrupts.
+  HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
-  
-  /* USER CODE END 2 */
 
+  DS18B20_Init(DS18B20_Resolution_12bits);
+
+
+  /*
+  if(== OW_OK)
+  {
+    tempatureSensorCount = 1; 
+  }
+   */ 
+ //tempatureSensorCount = DT_GetDeviceCount(&dt1);
+
+  /* USER CODE END 2 */
+   
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   setup();
@@ -108,9 +127,10 @@ int main(void)
   while (1)
   {    
     loop();
+    //get_Temperature();
+	  //HAL_Delay(2000);
     /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+       /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -179,6 +199,35 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
+ 
+uint8_t getTemperatureSensorCount()
+{
+  return tempatureSensorQuantity;
+}
+
+//Read temperature from sensors. Call every 1 second.
+void requestTemperature()
+{
+  DS18B20_ReadAll();
+  DS18B20_StartAll();
+
+  tempatureSensorQuantity = DS18B20_Quantity();  
+  
+  for(uint8_t i = 0; i < tempatureSensorQuantity; i++)
+		{
+			if(DS18B20_GetTemperature(i, &temperatureTmp))
+			{
+				DS18B20_GetROM(i, ROMdata);
+        tempatureBuf[i] = (uint16_t)(temperatureTmp * 10);
+			}
+		}
+}
+
+uint16_t getTempatureArr(uint8_t i)
+{
+   return tempatureBuf[i];
+}
+
 
 #ifdef  USE_FULL_ASSERT
 /**

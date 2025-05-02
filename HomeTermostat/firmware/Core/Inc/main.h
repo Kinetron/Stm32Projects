@@ -22,6 +22,8 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,7 +33,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#define DS18B20_Pin_Pin GPIO_PIN_2
+#define DS18B20_Pin_GPIO_Port GPIOA
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -53,10 +56,18 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-void init( void );
-void setup( void );
-void loop( void );
-void initLed( void );
+void init(void);
+void setup(void);
+void loop(void);
+void initLed(void);
+
+void owReceiveHalfBuffer(void);
+void owSendHalfBuffer(void);
+void owUartFinish(void);
+
+void requestTemperature();
+uint16_t getTempatureArr(uint8_t i);
+uint8_t getTemperatureSensorCount();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

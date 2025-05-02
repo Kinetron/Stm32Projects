@@ -18,9 +18,7 @@
 #define BLINK_LED_INTERVAL 70
 #define CHANGE_INDICATION_PERIOD 5 //switch U and I on display.
 
-#define MAX_PWM_CURRENT 8
-#define DEFAULT_PWM_VALUE 0x14 //;0x0A - 3.7v; 0x12 - 6v; 0x14 - 6.9v DC 14.6v
-#define MAX_PWM_VALUE 0xFF
+#define DATA_PAUSE_INTERVAL 2
 
 extern IWDG_HandleTypeDef hiwdg;
 extern ADC_HandleTypeDef hadc1;
@@ -31,6 +29,7 @@ uint32_t oldTimeTickHSec = 0;
 bool secondTimerHandler = false; //one second has passed
 
 uint8_t currentSegment; //For dynamic led.
+extern uint8_t tempatureSensorCount;
 
 const uint8_t ledMatrix[LED_MATRIX_SIZE] =
 {
@@ -71,10 +70,16 @@ uint32_t adcAvgBuff[ADC_NUMBER_OF_CHANNELS];
 uint32_t adcResults[ADC_NUMBER_OF_CHANNELS];
 uint8_t numberMeasurements = 0;
 
-
-
 uint8_t changeIndicationTimer;
 bool changeIndicationSwitch;
+
+uint32_t temperatureForSend; //For send data as pulse packet use tim4.
+bool temperatureDataOutState;
+uint32_t dataOutCounter; //Count pulse packet.
+bool dataPacketSend; //=true if send.
+uint8_t dataOutPauseCnt; //Pause counter.
+
+bool readTemperatureFlag;
 
 void initLed()
 {
@@ -91,7 +96,8 @@ void setup( void )
 {  
    HAL_IWDG_Refresh(&hiwdg);
    changeIndicationSwitch = true;
-   TIM2->CNT = 250 * 4;  
+   TIM2->CNT = 247 * 4;  
+   displayValue = 35; //Test
 }
 
 //Convert dig to 7 seg led matrix.
@@ -193,6 +199,72 @@ bool changeIndicationParam()
    return changeIndicationSwitch;
 }
 
+//Generates a pause after sending a burst of pulses
+void outDataPause()
+{
+  if(dataPacketSend)
+  {
+    if(dataOutPauseCnt <= DATA_PAUSE_INTERVAL )
+    {
+      dataOutPauseCnt ++;
+    }
+    else
+    {
+      dataOutPauseCnt = 0;
+      dataPacketSend = false; 
+    }
+  }  
+}
+void tim4InterruptHanler()
+{
+  if(dataPacketSend) //Pause
+  {      
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
+    return;
+  }
+
+   //Pulse count.
+  if(dataOutCounter < temperatureForSend)
+  {
+    dataOutCounter ++; 
+  }
+  else
+  {
+    dataOutCounter = 0;
+    dataPacketSend = true;
+    temperatureDataOutState = true; //Low level in output.
+  }
+
+  if(temperatureDataOutState)
+  {
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET); 
+    temperatureDataOutState = false;    
+  } 
+  else
+  {
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); 
+    temperatureDataOutState = true; 
+  }
+}
+
+void getTemperature()
+{
+  requestTemperature();
+  if(readTemperatureFlag)
+  {
+    displayValue = 253;// 
+    //float t = readTemperature();
+    readTemperatureFlag = false;
+  }
+  else
+  {
+    displayValue = 31;
+    //
+    readTemperatureFlag = true;
+  }
+}
+
+//
 /**
  * \brief   It is performed periodically in the body of the main loop.
  *
@@ -201,8 +273,7 @@ void loop( void )
 {  
     //Second timer.
     /*
-    if(secondTimerHandler == true)
-    {
+ 
     
       float voltage = (float)(adcResults[1]) * ADC_REFERENCE_VOLTAGE * DIVISION_COEFFICIENTS_VOLTAGE / 40960;
       float current = (float)(adcResults[0]) * ADC_REFERENCE_VOLTAGE * DIVISION_COEFFICIENTS_CURRENT / 40960;
@@ -243,6 +314,17 @@ void loop( void )
       //pwmControl(current);
     }   
 */
+
+   if(secondTimerHandler == true)
+   {
+    //outDataPause(); //Generates a pause after sending a burst of pulses
+    requestTemperature();
+    displayValue = getTempatureArr(0);// getTemperatureSensorCount();
+    //getTemperature();
+    secondTimerHandler = false;
+   }
+  /*
+   //Encoder test
     displayValue = TIM2->CNT;
     displayValue = displayValue / 4;
     if(displayValue > 999)
@@ -250,8 +332,11 @@ void loop( void )
       displayValue /= 10;
     }
 
+    temperatureForSend = displayValue * 2;
+    */
     hexToDec(displayValue);
     HAL_IWDG_Refresh(&hiwdg);
+    
   }
 
 //Soft timer.
@@ -374,4 +459,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     dynamicIndication();
     calculateAdc();     
  }
+
+ if (htim->Instance == TIM4)
+ { 
+    tim4InterruptHanler();  
+ } 
 }
