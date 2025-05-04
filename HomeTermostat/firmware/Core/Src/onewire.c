@@ -74,9 +74,14 @@ uint8_t OneWire_Reset(OneWire_t* onewire)
 
 	OneWire_BusInputDirection(onewire); // Release the bus by switching to input
 	OneWire_Delay(70);
-
-	i = HAL_GPIO_ReadPin(onewire->GPIOx, onewire->GPIO_Pin); // Check if bus is low
-															 // if it's high - no device is presence on the bus
+	
+	#ifdef USE_TWO_PINS	
+	  i = HAL_GPIO_ReadPin(DS18B20_Pin_GPIO_Port, OwInputPin);	
+	#else
+	  i = HAL_GPIO_ReadPin(onewire->GPIOx, onewire->GPIO_Pin); // Check if bus is low
+	  // if it's high - no device is presence on the bus
+	#endif
+	  														 
 	OneWire_Delay(410);
 
 	return i;
@@ -118,9 +123,17 @@ uint8_t OneWire_ReadBit(OneWire_t* onewire)
 	OneWire_BusInputDirection(onewire); // Release bus for Slave response
 	OneWire_Delay(10);
 
-	if (HAL_GPIO_ReadPin(onewire->GPIOx, onewire->GPIO_Pin)) // Read the bus state
-		bit = 1;
-
+ #ifdef USE_TWO_PINS
+   if (HAL_GPIO_ReadPin(DS18B20_Pin_GPIO_Port, OwInputPin)) // Read the bus state
+   {
+     bit = 1;
+   }
+ #else
+   if (HAL_GPIO_ReadPin(onewire->GPIOx, onewire->GPIO_Pin)) // Read the bus state
+   {
+	  bit = 1;
+   }
+ #endif
 	OneWire_Delay(50); // Wait for end of read cycle
 
 	return bit;
@@ -376,3 +389,13 @@ void OneWire_Init(OneWire_t* onewire, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
 	HAL_Delay(200);
 }
 
+//For two pins mode. Init RX pin.
+void OneWire_ConfigReadPin()
+{
+	GPIO_InitTypeDef	GPIO_InitStruct;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT; // Set as input
+	GPIO_InitStruct.Pull = GPIO_NOPULL; // No pullup - the pullup resistor is external
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM; // Medium GPIO frequency
+	GPIO_InitStruct.Pin = OwInputPin; // Pin for 1-Wire bus
+	HAL_GPIO_Init(DS18B20_Pin_GPIO_Port, &GPIO_InitStruct);
+}

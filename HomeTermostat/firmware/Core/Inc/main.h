@@ -33,9 +33,15 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
-#define DS18B20_Pin_Pin GPIO_PIN_2
+//For single pin mode.
+#define DS18B20_Pin_Pin GPIO_PIN_9 //GPIO_PIN_2  outout in two pins mode.
 #define DS18B20_Pin_GPIO_Port GPIOA
+
+//Use an external buffer on hef4001.
+//#define USE_TWO_PINS
+
+//Two pins mode.
+#define OwInputPin GPIO_PIN_10
 
 /* USER CODE END Includes */
 

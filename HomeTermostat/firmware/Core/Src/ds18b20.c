@@ -271,23 +271,14 @@ float DS18B20_GetTemperature(uint8_t number)
    return ds18b20[number].Temperature;	
 }
 
-/*
-//Bad work!
-uint8_t DS18B20_GetTemperature(uint8_t number, float* destination)
-{
-	if(!ds18b20[number].ValidDataFlag)
-		return 0;
-
-	*destination = ds18b20[number].Temperature;
-	return 1;
-
-}
-*/
 void DS18B20_Init(DS18B20_Resolution_t resolution)
 {
 	uint8_t next = 0, i = 0, j;
-	OneWire_Init(&OneWire, DS18B20_Pin_GPIO_Port, DS18B20_Pin_Pin); // Init OneWire bus
-
+ 
+	OneWire_Init(&OneWire, DS18B20_Pin_GPIO_Port, DS18B20_Pin_Pin); // Init OneWire output.
+ #ifdef USE_TWO_PINS 	
+	OneWire_ConfigReadPin();
+ #endif
 	next = OneWire_First(&OneWire); // Search first OneWire device
 	while(next)
 	{

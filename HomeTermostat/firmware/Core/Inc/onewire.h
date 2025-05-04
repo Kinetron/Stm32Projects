@@ -81,6 +81,8 @@ void OneWire_SelectWithPointer(OneWire_t* OneWireStruct, uint8_t* ROM);
 //	CRC calculating
 //
 uint8_t OneWire_CRC8(uint8_t* addr, uint8_t len);
+//For two pins mode. Init RX pin.
+void OneWire_ConfigReadPin();
 
 #endif
 

@@ -98,7 +98,8 @@ void setup( void )
    HAL_IWDG_Refresh(&hiwdg);
    changeIndicationSwitch = true;
    TIM2->CNT = 247 * 4;  
-   displayValue = 38; //Test
+
+   displayValue = 18;
 }
 
 //Convert dig to 7 seg led matrix.

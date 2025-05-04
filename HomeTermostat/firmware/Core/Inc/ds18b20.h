@@ -25,8 +25,7 @@
 #define	_DS18B20_PIN					DS18B20_Pin
 
 #define	_DS18B20_TIMER					htim1
-
-//#define _DS18B20_USE_CRC
+#define _DS18B20_USE_CRC
 
 //
 //	Sensor structure
