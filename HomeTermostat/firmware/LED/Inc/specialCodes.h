@@ -1,0 +1,1 @@
+#define WRITE_TO_FLASH_SIMVOL 0xFFFF

@@ -11,9 +11,14 @@ _BEGIN_STD_C
 #define LED_MATRIX_SIZE 21
 #define OFF_LED_SEGMENT_VALUE 20
 
-#define BLINK_LED_INTERVAL 70
+#define BLINK_LED_INTERVAL 40
 
 #define E_LATTER 15
+#define F_LATTER 16
+#define L_LATTER 17
+#define A_LATTER 11
+
+
 const uint8_t ledMatrix[LED_MATRIX_SIZE] =
 {
   0x0A, //0
@@ -61,5 +66,11 @@ void hexToDec(uint16_t value);
 
 //Soft timer.
 bool blinkLedTimerHandler();
+
+//On/Off points.
+void setPoints(uint8_t data);
+
+//On/Off blink digits.
+void blinkDigits(bool on);
 
 _END_STD_C

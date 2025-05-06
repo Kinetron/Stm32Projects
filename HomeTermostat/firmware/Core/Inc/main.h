@@ -43,6 +43,11 @@ extern "C" {
 //Two pins mode.
 #define OwInputPin GPIO_PIN_10
 
+#define HEATER_GPIO GPIOC 
+#define HEATER_PIN GPIO_PIN_14
+
+#define BUTTON_GPIO GPIOC 
+#define BUTTON_PIN GPIO_PIN_13
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -73,15 +78,9 @@ void owReceiveHalfBuffer(void);
 void owSendHalfBuffer(void);
 void owUartFinish(void);
 
-void requestTemperature();
-uint16_t getTempatureArr(uint8_t i);
-uint8_t getTemperatureSensorCount();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define USER_LED_Pin GPIO_PIN_13
-#define USER_LED_GPIO_Port GPIOC
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

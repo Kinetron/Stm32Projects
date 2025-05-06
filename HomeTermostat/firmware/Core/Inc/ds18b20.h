@@ -89,5 +89,6 @@ void		DS18B20_WriteROM(uint8_t number, uint8_t* ROM); // Write a ROM to 'number'
 uint8_t 	DS18B20_Quantity(void);	// Returns quantity of connected sensors
 float DS18B20_GetTemperature(uint8_t number);
 uint8_t DS18B20_GetValidDataFlag(uint8_t number); // Returns 0 if read data is invalid
+Ds18b20Sensor_t DS18B20_GetSensorData(uint8_t number);
 #endif
 

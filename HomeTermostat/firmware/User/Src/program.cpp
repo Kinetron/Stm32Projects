@@ -22,9 +22,6 @@ uint16_t displayValue;
 void setup( void )
 {  
    HAL_IWDG_Refresh(&hiwdg);
-
-   TIM2->CNT = 247 * 4;  
-
    displayValue = initWorkMode();  
 }
 
@@ -38,27 +35,17 @@ void loop( void )
    if(secondTimerHandler == true)
    {
     //outDataPause(); //Generates a pause after sending a burst of pulses
-    requestTemperature();
+    readTemperature();
     displayValue = prepareDisplay();
-        
+   
+    secondHanler(); 
     secondTimerHandler = false;
    }
-  /*
-   //Encoder test
-    displayValue = TIM2->CNT;
-    displayValue = displayValue / 4;
-    if(displayValue > 999)
-    {
-      displayValue /= 10;
-    }
 
-    temperatureForSend = displayValue * 2;
-    */
-
-    ledDisplayHandler(displayValue);
-    
-    HAL_IWDG_Refresh(&hiwdg);
-    
+   ledDisplayHandler(displayValue);
+   encoderHandler();    
+   
+   HAL_IWDG_Refresh(&hiwdg);    
   }
 
 void HAL_SYSTICK_Callback(void)
@@ -75,7 +62,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {   
  if (htim->Instance == TIM3)
  { 
-    dynamicIndication();   
+    dynamicIndication();
+    blinkLedTimerHandler();
+    buttonHandler();
  }
 
  if (htim->Instance == TIM4)

@@ -1,5 +1,6 @@
 #include "led.h"
 #include "ErrorCodes.h"
+#include "specialCodes.h"
 
 uint8_t pointData; //which digits the dot be displayed
 uint8_t displayArray[3] = {0, 0, 0};
@@ -120,6 +121,18 @@ void createErrorCodes(uint16_t value)
 //Run logic in the main loop of the program.
 void ledDisplayHandler(uint16_t digit)
 {
+  if(digit == WRITE_TO_FLASH_SIMVOL)
+  {
+    uint8_t digits[3] = {0, 0, 0};
+
+    digits[2] = F_LATTER;
+    digits[1] = L_LATTER;
+    digits[0] = A_LATTER;;
+
+    memcpy(displayArray, digits, 3); 
+    return; 
+  }
+
   if(digit < LED_ERROR_ARIA)
   {
     hexToDec(digit);
@@ -208,4 +221,16 @@ void dynamicIndication()
     default:
     break;
    }
+}
+
+//On/Off points.
+void setPoints(uint8_t data)
+{
+  pointData = data;
+}
+
+//On/Off blink digits.
+void blinkDigits(bool on)
+{
+  needBlink = on;
 }

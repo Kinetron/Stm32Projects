@@ -334,6 +334,48 @@ void eeprom_buffer_flush(void)
 
 #endif /* ! DATA_EEPROM_BASE */
 
+void eeprom_writeUint16(uint32_t pos, uint16_t value)
+{
+  const uint8_t* p = (const uint8_t*)(const void*)&value;
+  int i;
+  for (i = 0; i < sizeof(value); i++)
+  {
+    eeprom_write_byte(pos++, *p++);
+  }
+}
+
+uint16_t eeprom_readUint16(uint32_t pos)
+{
+  uint16_t value = 0;
+
+  uint8_t* p = (uint8_t*)(void*)&value;
+  
+  for (int i = 0; i < sizeof(value); i++)
+  {
+    *p++ =  eeprom_read_byte(pos++);
+  }
+
+  return value;
+}
+
+void eeprom_writeArray(uint32_t pos, uint8_t numbers[], uint8_t arraySize)
+{
+  for (uint8_t i = 0; i < arraySize; i++) 
+  {
+    eeprom_write_byte(pos, numbers[i]);
+    pos++;
+  }
+}
+
+void eeprom_readArray(uint32_t pos, uint8_t numbers[], uint8_t arraySize)
+{
+  for (uint8_t i = 0; i < arraySize; i++)
+  {
+    numbers[i] = eeprom_read_byte(pos);;
+    pos++;
+  }
+}
+
 #ifdef __cplusplus
 }
 #endif

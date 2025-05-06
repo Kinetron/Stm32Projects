@@ -46,13 +46,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-float temperatureTmp;
-float temperatureBuffer[3];
-uint8_t tempatureSensorQuantity;
-uint16_t tempatureBuf[3];//[_DS18B20_MAX_SENSORS];
-uint8_t ROMdata[_DS18B20_MAX_SENSORS];
-
-extern Ds18b20Sensor_t ds18b20[_DS18B20_MAX_SENSORS];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,9 +89,9 @@ int main(void)
   MX_GPIO_Init();
   initLed();
   //MX_DMA_Init(); 
-  MX_TIM2_Init();
+  MX_TIM2_Init();  //Encoder
   MX_TIM3_Init(); 
-  MX_TIM4_Init(); 
+  MX_TIM4_Init();
   MX_IWDG_Init();
   MX_TIM1_Init();
  // MX_USART1_UART_Init();
@@ -109,14 +102,6 @@ int main(void)
 
   DS18B20_Init(DS18B20_Resolution_12bits);
 
-  /*
-  if(== OW_OK)
-  {
-    tempatureSensorCount = 1; 
-  }
-   */ 
- //tempatureSensorCount = DT_GetDeviceCount(&dt1);
-
   /* USER CODE END 2 */
    
   /* Infinite loop */
@@ -126,10 +111,8 @@ int main(void)
   while (1)
   {    
     loop();
-    //get_Temperature();
-	  //HAL_Delay(2000);
     /* USER CODE END WHILE */
-       /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -197,38 +180,6 @@ void Error_Handler(void)
   {
   }
   /* USER CODE END Error_Handler_Debug */
-}
- 
-uint8_t getTemperatureSensorCount()
-{
-  return tempatureSensorQuantity;
-}
-
-//Read temperature from sensors. Call every 1 second.
-void requestTemperature()
-{
-  DS18B20_ReadAll();
-  DS18B20_StartAll();
-
-  tempatureSensorQuantity = DS18B20_Quantity();  
-  
-  for(uint8_t i = 0; i < tempatureSensorQuantity; i++)
-		{
-      temperatureTmp = 0;
-      if(DS18B20_GetValidDataFlag(i))
-      {
-        tempatureBuf[i] = DS18B20_GetTemperature(i) * 10;  
-      }
-      else
-      {
-        tempatureBuf[i] = 15;
-      }    
-    }    
-}
-
-uint16_t getTempatureArr(uint8_t i)
-{
-   return tempatureBuf[i];
 }
 
 #ifdef  USE_FULL_ASSERT

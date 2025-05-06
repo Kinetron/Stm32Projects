@@ -107,6 +107,11 @@ extern "C" {
 
 uint8_t eeprom_read_byte(const uint32_t pos);
 void eeprom_write_byte(uint32_t pos, uint8_t value);
+uint16_t eeprom_readUint16(uint32_t pos);
+void eeprom_writeUint16(uint32_t pos, uint16_t value);
+
+void eeprom_writeArray(uint32_t pos, uint8_t numbers[], uint8_t arraySize);
+void eeprom_readArray(uint32_t pos, uint8_t numbers[], uint8_t arraySize);
 
 #if !defined(DATA_EEPROM_BASE)
 void eeprom_buffer_fill();

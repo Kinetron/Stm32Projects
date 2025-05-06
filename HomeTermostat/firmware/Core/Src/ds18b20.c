@@ -271,6 +271,11 @@ float DS18B20_GetTemperature(uint8_t number)
    return ds18b20[number].Temperature;	
 }
 
+Ds18b20Sensor_t DS18B20_GetSensorData(uint8_t number)
+{
+   return ds18b20[number];	
+}
+
 void DS18B20_Init(DS18B20_Resolution_t resolution)
 {
 	uint8_t next = 0, i = 0, j;
