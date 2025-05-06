@@ -9,7 +9,7 @@ string(SUBSTRING ${MCU} 5 6 MCU_MODEL)
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../modules/stm32-cmake/cmake/stm32_gcc.cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../../tools")
 
-# В качестве имени проекта используем имя папки (см. tasks.json и launch.json).
+# We use the folder name as the project name. ( tasks.json and launch.json).
 get_filename_component(BASE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(PROJECT_NAME ${BASE_FOLDER})
 
@@ -40,6 +40,10 @@ add_executable(${PROJECT_NAME})
 # Add folder.
 add_subdirectory(Core)
 add_subdirectory(User)
+add_subdirectory(ControlLogic)
+add_subdirectory(EEPROM)
+add_subdirectory(LED)
+add_subdirectory(PulseSender)
 
 target_link_libraries(${PROJECT_NAME}
     HAL::STM32::${MCU_FAMILY}::RCC
@@ -61,6 +65,8 @@ target_link_libraries(${PROJECT_NAME}
     HAL::STM32::${MCU_FAMILY}::FLASH
     HAL::STM32::${MCU_FAMILY}::FLASHEx
 )
+ 
+
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(${PROJECT_NAME} PRIVATE USE_HAL_DRIVER STM32F103xB)
