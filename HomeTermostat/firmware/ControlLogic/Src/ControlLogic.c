@@ -12,6 +12,8 @@ struct flashTimer softFlashTimerData;
 struct buttonData encoderButton;//Checks if the encoder button is pressed.
 struct initState initDevice;
 
+struct requestTemperatureTimer requestTemperatureSoftTimer;
+
 //After start read system params and decides on the mode of operation.
 uint16_t initWorkMode()
 {
@@ -196,11 +198,27 @@ uint8_t isSetRoomSensorAddress()
 
 void readTemperature()
 {
+  if(!requestTemperatureTimer()) 
+  {
+    return;
+  }
+
   DS18B20_ReadAll();
   DS18B20_StartAll();
 
   tempControlData.sensorQuantity = DS18B20_Quantity();  
+
+  //For fast find if error.
+  if(tempControlData.sensorQuantity == 0)
+  {
+    requestTemperatureSoftTimer.disabled = true;
+  }
+  else
+  {
+    requestTemperatureSoftTimer.disabled = false;
+  }
   
+
   for(uint8_t i = 0; i < MAX_SENSOR_QUANTITY; i++)
 	{
     tempControlData.data[i] = DS18B20_GetSensorData(i);
@@ -214,6 +232,41 @@ void readTemperature()
   if(tempControlData.sensorQuantity == 1)
   {
     tempControlData.roomTempature = tempControlData.tempatureBuff[0];
+  }
+}
+
+//Every REQUEST_TEMPERATURE_INTERVAL return true. 
+bool requestTemperatureTimer()
+{
+   if(requestTemperatureSoftTimer.disabled)
+   {
+    return true;
+   }
+
+  //Delay after first run.
+  if(!requestTemperatureSoftTimer.isNoFirstRun)
+  {
+     if(requestTemperatureSoftTimer.initCounter <= DELAY_USE_SLOW_TEMPERATURE_INTERVAL)
+     {
+      requestTemperatureSoftTimer.initCounter ++;
+      return true;
+     }
+     else
+     {
+      requestTemperatureSoftTimer.initCounter = 0;
+      requestTemperatureSoftTimer.isNoFirstRun = true;
+     }
+  }
+
+  if(requestTemperatureSoftTimer.counter <= READ_TEMPERATURE_INTERVAL)
+  {
+    requestTemperatureSoftTimer.counter ++;
+    return false;
+  }
+  else
+  {
+    requestTemperatureSoftTimer.counter = 0;
+    return true;
   }
 }
 
@@ -435,4 +488,27 @@ void sensorAddressInitProcess()
    {
      return;
    }
+
+   //Not init, if no ds18b20. 
+   if(tempControlData.sensorQuantity == 0 || tempControlData.sensorQuantity == 2)
+   {
+     return;
+   }
+
+   //Timer.
+   if(initDevice.counter <= DELAY_BEFORE_WRITE_ROOM_ADDR)
+   {
+    initDevice.counter ++;
+   }
+   else
+   {
+    initDevice.counter = 0;
+    initDevice.hasRoomSensorAddress = true;
+   }
+}
+
+//Saves the address of the first device in flash, which is used as a room address.
+void writeRoomSensorAddress()
+{
+  
 }

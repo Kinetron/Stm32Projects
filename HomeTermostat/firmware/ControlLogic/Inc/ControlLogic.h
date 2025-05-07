@@ -15,6 +15,10 @@
 #define MAX_ENCODER_VALUE 999
 #define DELAY_BEFORE_WRITE_TO_FLASH 5
 #define COUNT_TICKS_BUTTON_IS_PRESSED 50 //how long does the tap btn count as active
+#define DELAY_BEFORE_WRITE_ROOM_ADDR 30 //If the device is not initialized and one sensor is connected, then after this time it will be considered as a room sensor.
+
+#define DELAY_USE_SLOW_TEMPERATURE_INTERVAL 10 //The time after run when reads temperature overy second.
+#define READ_TEMPERATURE_INTERVAL 9 //every 7 second read temperature.
 
 #define FLASH_INIT_FLAG 0x37
 #define FLASH_INIT_FLAG_POS 0
@@ -77,11 +81,22 @@ struct buttonData
     bool isPressed;
 };
 
-//Checks if the encoder button is pressed.
 struct initState
 {
-    bool hasRoomSensorAddress;
+    uint8_t counter;
     uint8_t initMode;
+
+    bool hasRoomSensorAddress;
+};
+
+//Measures the intervals between read temperature sensors.
+struct requestTemperatureTimer
+{
+   uint8_t counter;
+   uint8_t initCounter;
+   
+   bool disabled;
+   bool isNoFirstRun;
 };
 
 _BEGIN_STD_C
@@ -101,6 +116,9 @@ uint8_t isSetRoomSensorAddress();
 
 //Read temperature from sensors.
 void readTemperature();
+
+//Every REQUEST_TEMPERATURE_INTERVAL return true. 
+bool requestTemperatureTimer();
 
 //Blink point.
 void showHeaterState();
@@ -137,5 +155,8 @@ void buttonHandler();
 
 //Writes sensor addresses to the flash if necessary
 void sensorAddressInitProcess();
+
+//Saves the address of the first device in flash, which is used as a room address.
+void writeRoomSensorAddress();
 
 _END_STD_C
