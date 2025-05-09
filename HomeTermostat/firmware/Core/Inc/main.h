@@ -38,7 +38,7 @@ extern "C" {
 #define DS18B20_Pin_GPIO_Port GPIOA
 
 //Use an external buffer on hef4001.
-//#define USE_TWO_PINS
+#define USE_TWO_PINS
 
 //Two pins mode.
 #define OwInputPin GPIO_PIN_10

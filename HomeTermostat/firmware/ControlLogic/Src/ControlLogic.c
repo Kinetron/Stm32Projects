@@ -14,9 +14,13 @@ struct initState initDevice;
 
 struct requestTemperatureTimer requestTemperatureSoftTimer;
 
+uint16_t messageBuffer; //For special system messages.
+extern uint32_t temperatureForSend; //For send data as pulse packet use tim4.
+
 //After start read system params and decides on the mode of operation.
 uint16_t initWorkMode()
 {
+  //cleanFlashSetting();
   uint16_t setTemperature = eeprom_readUint16(FLASH_SET_TEMPERATURE_POS);
   
   //Not set temperature. Init.
@@ -34,34 +38,25 @@ uint16_t initWorkMode()
   encoder.value = tempControlData.roomSetedTemperature;
   TIM2->CNT = tempControlData.roomSetedTemperature * 2;
 
-  //Set hot water sensor address ?
-  initDevice.hasRoomSensorAddress = isSetRoomSensorAddress();
-
-  //If not set address how water sensor - uset first as room.
-  tempControlData.ignoreHotWaterTemperature = true;
+  //Reads the address temperature sensor from the flash, which measures the parameters in the room.
+  uint8_t flashData[DS18B20_ADDR_SIZE];
+  eeprom_readArray(FLASH_T0_ADDRESS_POS, flashData, DS18B20_ADDR_SIZE);
   
+  //Set in flash hot water sensor address ?
+  initDevice.hasRoomSensorAddress = isSetRoomSensorAddress(flashData);
 
-
-  /*
-  uint8_t initFlag = eeprom_read_byte(FLASH_INIT_FLAG_POS);
-
-  if(initFlag != FLASH_INIT_FLAG)
+  if(initDevice.hasRoomSensorAddress)
   {
-    systemMode = 0;
-    //eeprom_write_byte(FLASH_INIT_FLAG_POS, FLASH_INIT_FLAG);
-  }  
-  
-  if(initFlag == FLASH_INIT_FLAG)
+    //Store address for identity ds18b20.
+    memcpy(tempControlData.roomAddress, flashData, DS18B20_ADDR_SIZE);
+    return USE_ROOM_ADDRES_SIMVOL;
+  }
+  else
   {
-    systemMode = 1;
-   
-  }  
-*/
-  return 95;//initFlag;
-//#define FLASH_INIT_FLAG 0x37
-
-    //FLASH_INIT_FLAG_POS 
-   //
+    //If not set address how water sensor - uset first as room.
+    tempControlData.ignoreHotWaterTemperature = true;  
+    return NO_ROOM_ADDRES_SIMVOL;
+  }
 }
 
 //Generates the data displayed on the led.
@@ -105,9 +100,38 @@ uint16_t prepareDisplay(void)
     return WRITE_TO_FLASH_SIMVOL;
   }
 
-  uint16_t displayValue = emptySettingsModeDisplay();
+  //Write room sensor address to the flash if necessary.
+  if(!initDevice.hasRoomSensorAddress)
+  {
+    uint16_t result = sensorAddressInitProcess();
+    if(result != 0)  //Return simvols for show in led if data save.
+    {
+       return result; 
+    }
+  }
+
+  uint16_t displayValue = 0;
+
+  //No init.
+  if(!initDevice.hasRoomSensorAddress)
+  {
+    displayValue = emptySettingsModeDisplay();
+  }
+  else
+  {
+    displayValue = showRoomTemperature(); 
+  }  
+
   showHeaterState();
   setPoints(ledPointFlag);
+
+  //Show system message.
+  if(messageBuffer != 0)
+  {
+    uint16_t ledStr = messageBuffer;
+    messageBuffer = 0;
+    return ledStr;
+  } 
 
   return displayValue;
 }
@@ -170,23 +194,25 @@ uint16_t showSingleSensorTemperature()
     return temperature;
 }
 
+uint16_t showRoomTemperature()
+{
+  switchDecimalPoint(tempControlData.roomTempature);
+
+  return tempControlData.roomTempature;
+}
+
 uint16_t createErrorCode(enum ErrorCodes err)
 {
   return LED_ERROR_ARIA + err;
 }
 
-  //Set hot water sensor address ?
-uint8_t isSetRoomSensorAddress()
-{
-    //Set hot water sensor address ?
-    uint8_t address[DS18B20_ADDR_SIZE];
-    memset(address, 0, DS18B20_ADDR_SIZE);
-    eeprom_readArray(FLASH_T0_ADDRESS_POS, address, DS18B20_ADDR_SIZE);
-    
+//Set hot water sensor address ?
+uint8_t isSetRoomSensorAddress(uint8_t *flashData)
+{  
     uint8_t empty = 0;
     for (uint8_t i = 0; i < DS18B20_ADDR_SIZE; i++)
     {
-      if(address[i] != 0xFF)
+      if(flashData[i] != 0xFF)
       {
         empty = 1;
         break;
@@ -217,22 +243,64 @@ void readTemperature()
   {
     requestTemperatureSoftTimer.disabled = false;
   }
-  
 
   for(uint8_t i = 0; i < MAX_SENSOR_QUANTITY; i++)
 	{
     tempControlData.data[i] = DS18B20_GetSensorData(i);
-
-    if(DS18B20_GetValidDataFlag(i))
-    {
-        tempControlData.tempatureBuff[i] = round(DS18B20_GetTemperature(i) * 10);  
-    }   
   }   
 
+  findAndGetRoomTemperature();
+}
+
+//Knowing the address of the room temperature sensor, it tries to get the temperature.
+void findAndGetRoomTemperature()
+{
+  bool findRoom = false;
+
+  if(tempControlData.sensorQuantity > MAX_SENSOR_QUANTITY)
+  {
+    tempControlData.sensorQuantity = MAX_SENSOR_QUANTITY;
+  }
+
+  for(uint8_t i = 0; i < tempControlData.sensorQuantity; i++)
+	{
+    if(!tempControlData.data[i].ValidDataFlag)
+    {
+      continue;
+    }
+    
+    //Save sensor data.
+    float temperature = tempControlData.data[i].Temperature;
+    if(temperature < 0)
+    {
+      temperature = 0;
+    }
+      
+    tempControlData.tempatureBuff[i] = round(temperature * 10);
+      
+    //Store room temperature and hot water.
+    if(memcmp(tempControlData.data[i].Address, tempControlData.roomAddress, DS18B20_ADDR_SIZE) == 0)
+    {
+      tempControlData.roomTempature = tempControlData.tempatureBuff[i];
+      findRoom = true;
+    }  
+    else
+    {
+      tempControlData.hotWaterTempature = tempControlData.tempatureBuff[i];
+    }       
+  }   
+
+  //We use only one sensor.
   if(tempControlData.sensorQuantity == 1)
   {
     tempControlData.roomTempature = tempControlData.tempatureBuff[0];
   }
+
+  //User change ds18b20. Address change. Maybe the old is broken.
+  if(initDevice.hasRoomSensorAddress && tempControlData.sensorQuantity > 1 && findRoom == false)
+  {
+    resetRoomSensorAdress();
+  }  
 }
 
 //Every REQUEST_TEMPERATURE_INTERVAL return true. 
@@ -270,6 +338,20 @@ bool requestTemperatureTimer()
   }
 }
 
+/*
+If the device has saved the address value of the sensor measuring the temperature in the room,
+and the user has replaced the sensor.
+The device erases the old address and starts the reinitialization process.
+The second sensor must be disabled, otherwise the first one will be considered a temperature sensor in the room.
+And it, in turn, may turn out to be a hot water sensor.
+Therefore, it is important to use one sensor when replacing it – then the device will work correctly.
+*/
+void resetRoomSensorAdress()
+{
+  messageBuffer = RESET_ROOM_ADDR_SIMVOL;
+  cleanFlashSetting();
+}
+
 //Blink point.
 void showHeaterState()
 {
@@ -287,6 +369,7 @@ void showHeaterState()
 void heatingControl()
 {
   uint16_t currentTemperature = tempControlData.roomTempature;
+  temperatureForSend = tempControlData.roomTempature;
   
   if(currentTemperature >= tempControlData.roomSetedTemperature + HYSTERESIS)
   {
@@ -307,7 +390,13 @@ void heatingControl()
       tempControlData.heaterOn = false; //Off heater.
     }
   }
-  
+
+  //External off.
+  if(externalOffPinHandler())
+  {
+    tempControlData.heaterOn = false;
+  }
+
   if(tempControlData.heaterOn)
   {
     HAL_GPIO_WritePin(HEATER_GPIO, HEATER_PIN, GPIO_PIN_SET);
@@ -332,35 +421,6 @@ void encoderHandler()
   encoder.value = encoderValue;
   encoder.lastEncoderValue = encoderValue;
   encoder.hasRotate = true;
-
-  /*
-  if(diff > 0 && encoder.value < MAX_ENCODER_VALUE)
-  {
-    encoder.value ++;
-    return;
-  }
-
-  if(diff < 0 && encoder.value > 0)
-  {
-    encoder.value --;
-    return;
-  }
-    */
-
- 
-
-   /*
-    MAX_ENCODER_VALUE
-   //Encoder test
-    displayValue = TIM2->CNT;
-    displayValue = displayValue / 4;
-    if(displayValue > 999)
-    {
-      displayValue /= 10;
-    }
-
-    temperatureForSend = displayValue * 2;
-    */ 
 }
 
 void showSettingsTimer()
@@ -446,6 +506,7 @@ void softFlashTimerReset()
 
 void softFlashTimerHandler()
 {
+  eeprom_writeUint16(FLASH_SET_TEMPERATURE_POS,  tempControlData.roomSetedTemperature);
   softFlashTimerData.dataWillSave = true;
 }
 
@@ -481,18 +542,18 @@ void buttonHandler()
 }
 
 //Writes sensor addresses to the flash if necessary
-void sensorAddressInitProcess()
+uint16_t sensorAddressInitProcess()
 {
    //Has valid room sensor address.
    if(initDevice.hasRoomSensorAddress)
    {
-     return;
+     return 0;
    }
 
-   //Not init, if no ds18b20. 
+   //Not init, if no ds18b20. Or user error if init.
    if(tempControlData.sensorQuantity == 0 || tempControlData.sensorQuantity == 2)
    {
-     return;
+     return 0;
    }
 
    //Timer.
@@ -504,11 +565,42 @@ void sensorAddressInitProcess()
    {
     initDevice.counter = 0;
     initDevice.hasRoomSensorAddress = true;
+    writeRoomSensorAddress();
+
+    return WRITE_ROOM_ADD_TO_FLASH_SIMVOL;
    }
+
+   return 0;
 }
 
 //Saves the address of the first device in flash, which is used as a room address.
 void writeRoomSensorAddress()
 {
+  uint8_t deviceAddress[DS18B20_ADDR_SIZE];
+  memcpy(deviceAddress, &tempControlData.data[0], DS18B20_ADDR_SIZE);
+  eeprom_writeArray(FLASH_T0_ADDRESS_POS, deviceAddress, DS18B20_ADDR_SIZE);
   
+  //Store address for identity.
+  memcpy(tempControlData.roomAddress, deviceAddress, DS18B20_ADDR_SIZE);
+}
+
+//Clears all settings.
+void cleanFlashSetting()
+{
+  uint8_t ariaSize = FLASH_SET_TEMPERATURE_POS + 2;
+  for(uint8_t i =0; i < ariaSize; i++)
+  {
+    eeprom_write_byte(i, 0xFF);
+  }
+}
+
+//Read external off pump input.
+bool externalOffPinHandler()
+{
+  if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9) == GPIO_PIN_RESET)
+  {
+    return true;    
+  }
+
+  return false;
 }

@@ -121,17 +121,53 @@ void createErrorCodes(uint16_t value)
 //Run logic in the main loop of the program.
 void ledDisplayHandler(uint16_t digit)
 {
-  if(digit == WRITE_TO_FLASH_SIMVOL)
-  {
-    uint8_t digits[3] = {0, 0, 0};
+  uint8_t digits[3] = {0, 0, 0};
 
-    digits[2] = F_LATTER;
-    digits[1] = L_LATTER;
+  switch (digit)
+  {
+    case WRITE_TO_FLASH_SIMVOL:
+      digits[2] = F_LATTER;
+      digits[1] = L_LATTER;
+      digits[0] = A_LATTER;;
+
+      memcpy(displayArray, digits, 3); 
+    return; 
+  
+    case NO_ROOM_ADDRES_SIMVOL:
+      digits[2] = N_LATTER;
+      digits[1] = O_LATTER;
+      digits[0] = R_LATTER;;
+
+      memcpy(displayArray, digits, 3); 
+    return; 
+    
+    case USE_ROOM_ADDRES_SIMVOL:
+      digits[2] = U_LATTER;
+      digits[1] = R_LATTER;
+      digits[0] = O_LATTER;;
+
+      memcpy(displayArray, digits, 3); 
+    return; 
+
+    case WRITE_ROOM_ADD_TO_FLASH_SIMVOL:
+      digits[2] = F_LATTER;
+      digits[1] = L_LATTER;
+      digits[0] = R_LATTER;;
+
+      memcpy(displayArray, digits, 3); 
+    return; 
+
+    case RESET_ROOM_ADDR_SIMVOL:
+    digits[2] = R_LATTER;
+    digits[1] = R_LATTER;
     digits[0] = A_LATTER;;
 
     memcpy(displayArray, digits, 3); 
-    return; 
-  }
+  return; 
+  
+  default:
+    break;
+  } 
 
   if(digit < LED_ERROR_ARIA)
   {

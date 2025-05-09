@@ -8,7 +8,7 @@
 
 _BEGIN_STD_C
 
-#define LED_MATRIX_SIZE 21
+#define LED_MATRIX_SIZE 25
 #define OFF_LED_SEGMENT_VALUE 20
 
 #define BLINK_LED_INTERVAL 40
@@ -17,7 +17,10 @@ _BEGIN_STD_C
 #define F_LATTER 16
 #define L_LATTER 17
 #define A_LATTER 11
-
+#define N_LATTER 21
+#define O_LATTER 22
+#define R_LATTER 23
+#define U_LATTER 24
 
 const uint8_t ledMatrix[LED_MATRIX_SIZE] =
 {
@@ -41,7 +44,11 @@ const uint8_t ledMatrix[LED_MATRIX_SIZE] =
   0x9E, //L
   0x8F, //L mirror
   0x13, //H
-  0xFD //off segment
+  0xFD, //off segment
+  0xB3, //n
+  0xB2, //o
+  0xb7, //r
+  0xBA //u
 };
 
 void initLed();

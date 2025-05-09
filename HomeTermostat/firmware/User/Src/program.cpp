@@ -9,7 +9,6 @@
 #include "ControlLogic.h"
 #include "PulseSender.h"
 
-
 extern IWDG_HandleTypeDef hiwdg;
 
 volatile uint32_t TimeTickMs = 0;
@@ -18,8 +17,7 @@ uint32_t oldTimeTickHSec = 0;
 bool secondTimerHandler = false; //one second has passed
 uint16_t displayValue;
 
-
-void setup( void )
+void setup(void)
 {  
    HAL_IWDG_Refresh(&hiwdg);
    displayValue = initWorkMode();  
@@ -30,11 +28,11 @@ void setup( void )
  * \brief   It is performed periodically in the body of the main loop.
  *
  */
-void loop( void )
+void loop(void)
 {  
    if(secondTimerHandler == true)
    {
-    //outDataPause(); //Generates a pause after sending a burst of pulses
+    outDataPause(); //Generates a pause after sending a burst of pulses
     readTemperature();
     displayValue = prepareDisplay();
    

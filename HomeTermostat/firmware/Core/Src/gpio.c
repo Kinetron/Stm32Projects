@@ -98,6 +98,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  //External off pump input.
+  GPIO_InitStruct.Pin = GPIO_PIN_9;  
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   //PC14 - heater on/off
   GPIO_InitStruct.Pin = HEATER_PIN;  
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
