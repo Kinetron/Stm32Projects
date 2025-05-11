@@ -15,8 +15,8 @@ extern TIM_HandleTypeDef htim2;
 #define ADC_REFERENCE_VOLTAGE 32.5 //~3.3*10
 #define DIVISION_COEFFICIENTS_VOLTAGE 2 //4.7k + 4.7k divider
 
-#define MAX_CHARGE_VOLTAGE 3.6
-#define MIN_DISCHARGE_VOLTAGE 3.5
+#define MAX_CHARGE_VOLTAGE 3.7 //real 3.79
+#define MIN_DISCHARGE_VOLTAGE 3.5 //real 3.6
 
 volatile uint32_t TimeTickMs = 0;
 uint32_t oldTimeTickHSec = 0;
