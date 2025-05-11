@@ -1,0 +1,74 @@
+13 PA3 base transistor1
+14 PA4 a
+15 PA5 f
+16 PA6 e
+17 PA7 b
+
+00001111 
+ 
+
+18 PB0 d     FE  0011 0      
+19 PB1 dp         1
+ 
+21 PB10 c    0011 F3 2    1100
+22 PB11 g            3
+
+        1100
+
+25 PB12 base transistor2
+26 PB13 base transistor3
+
+
+segments
+
+PB0 d    
+PB1 dp    
+PB10 c   
+PB11 g   
+
+PA4 a
+PA5 f
+PA6 e
+PA7 b
+
+1 - 0x7B
+
+0111 1011
+
+PB0 d  1  
+PB1 dp 1     
+PB10 c 0  
+PB11 g 1  
+
+PA4 a  1
+PA5 f  1
+PA6 e  1
+PA7 b  0
+
+
+5 - 0xC2
+1100 0010
+
+(bit 0)PB0 d  0  
+	   PB1 dp 1     
+	   PB10 c 0  
+	   PB11 g 0  
+
+	   PA4 a  0
+	   PA5 f  0
+	   PA6 e  1
+(bit 7)PA7 b  1
+
+
+u char
+(bit 0)PB0 d  0  
+	   PB1 dp 1     
+	   PB10 c 0  
+	   PB11 g 1
+
+	   PA4 a  1
+	   PA5 f  1
+	   PA6 e  0
+(bit 7)PA7 b  1
+
+
