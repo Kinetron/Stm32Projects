@@ -86,15 +86,15 @@ uint8_t DS18B20_Read(uint8_t number, float *destination)
 	for (i = 0; i < DS18B20_DATA_LEN; i++) // Read scratchpad
 		data[i] = OneWire_ReadByte(&OneWire);
 
-#ifdef _DS18B20_USE_CRC
+	OneWire_Reset(&OneWire); // Reset the bus
+
+	#ifdef _DS18B20_USE_CRC
 	crc = OneWire_CRC8(data, 8); // CRC calculation
 
 	if (crc != data[8])
 		return 0; // CRC invalid
-#endif
+    #endif
 	temperature = data[0] | (data[1] << 8); // Temperature is 16-bit length
-
-	OneWire_Reset(&OneWire); // Reset the bus
 
 	resolution = ((data[4] & 0x60) >> 5) + 9; // Sensor's resolution from scratchpad's byte 4
 
@@ -219,6 +219,7 @@ uint8_t DS18B20_AllDone(void)
 void DS18B20_ReadAll(void)
 {
 	uint8_t i;
+	uint8_t retry;
 
 	if (DS18B20_AllDone())
 	{
@@ -228,7 +229,7 @@ void DS18B20_ReadAll(void)
 
 			if (DS18B20_Is((uint8_t*)&ds18b20[i].Address))
 			{
-				ds18b20[i].ValidDataFlag = DS18B20_Read(i, &ds18b20[i].Temperature); // Read single sensor
+			   ds18b20[i].ValidDataFlag = DS18B20_Read(i, &ds18b20[i].Temperature); // Read single sensor	
 			}
 		}
 	}

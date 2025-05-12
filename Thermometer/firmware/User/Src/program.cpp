@@ -18,7 +18,7 @@ uint16_t displayValue;
 
 void setup(void)
 {  
-   HAL_IWDG_Refresh(&hiwdg); 
+   HAL_IWDG_Refresh(&hiwdg);
 }
 
 //

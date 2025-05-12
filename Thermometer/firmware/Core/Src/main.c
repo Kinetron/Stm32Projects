@@ -101,12 +101,14 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 
   DS18B20_Init(DS18B20_Resolution_12bits);
+  //DS18B20_Init(DS18B20_Resolution_9bits);
 
   /* USER CODE END 2 */
    
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   setup();
+  
 
   while (1)
   {    

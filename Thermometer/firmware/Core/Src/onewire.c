@@ -71,12 +71,13 @@ uint8_t OneWire_Reset(OneWire_t* onewire)
 	OneWire_OutputLow(onewire);  // Write bus output low
 	OneWire_BusOutputDirection(onewire);
 	OneWire_Delay(480); // Wait 480 us for reset
+	OneWire_Delay(480); //For slow sensors.
 
 	OneWire_BusInputDirection(onewire); // Release the bus by switching to input
 	OneWire_Delay(70);
 	
 	#ifdef USE_TWO_PINS	
-	  i = HAL_GPIO_ReadPin(DS18B20_Pin_GPIO_Port, OwInputPin);	
+	  i = HAL_GPIO_ReadPin(OwInputPin_GPIO_Port, OwInputPin);	
 	#else
 	  i = HAL_GPIO_ReadPin(onewire->GPIOx, onewire->GPIO_Pin); // Check if bus is low
 	  // if it's high - no device is presence on the bus
@@ -96,19 +97,23 @@ void OneWire_WriteBit(OneWire_t* onewire, uint8_t bit)
 	{
 		OneWire_OutputLow(onewire);	// Set the bus low
 		OneWire_BusOutputDirection(onewire);
-		OneWire_Delay(6);
+		//OneWire_Delay(6);
+		OneWire_Delay(10);
 
 		OneWire_BusInputDirection(onewire); // Release bus - bit high by pullup
-		OneWire_Delay(64);
+		//OneWire_Delay(64);
+		OneWire_Delay(55);
 	}
 	else // Send '0'
 	{
 		OneWire_OutputLow(onewire); // Set the bus low
 		OneWire_BusOutputDirection(onewire);
-		OneWire_Delay(60);
+		//OneWire_Delay(60);
+		OneWire_Delay(65);
 
 		OneWire_BusInputDirection(onewire); // Release bus - bit high by pullup
-		OneWire_Delay(10);
+		//OneWire_Delay(10);
+		OneWire_Delay(5);
 	}
 }
 
@@ -118,13 +123,14 @@ uint8_t OneWire_ReadBit(OneWire_t* onewire)
 
 	OneWire_OutputLow(onewire); // Set low to initiate reading
 	OneWire_BusOutputDirection(onewire);
-	OneWire_Delay(2);
+	//OneWire_Delay(2);
+	OneWire_Delay(3);
 
 	OneWire_BusInputDirection(onewire); // Release bus for Slave response
 	OneWire_Delay(10);
 
  #ifdef USE_TWO_PINS
-   if (HAL_GPIO_ReadPin(DS18B20_Pin_GPIO_Port, OwInputPin)) // Read the bus state
+   if (HAL_GPIO_ReadPin(OwInputPin_GPIO_Port, OwInputPin)) // Read the bus state
    {
      bit = 1;
    }
@@ -134,8 +140,8 @@ uint8_t OneWire_ReadBit(OneWire_t* onewire)
 	  bit = 1;
    }
  #endif
-	OneWire_Delay(50); // Wait for end of read cycle
-
+	//OneWire_Delay(50); // Wait for end of read cycle
+	OneWire_Delay(53); 
 	return bit;
 }
 
@@ -348,24 +354,19 @@ void OneWire_GetFullROM(OneWire_t* onewire, uint8_t *firstIndex)
 //
 //	Calculate CRC
 //
-uint8_t OneWire_CRC8(uint8_t *addr, uint8_t len) {
-	uint8_t crc = 0, inbyte, i, mix;
-
-	while (len--)
-	{
-		inbyte = *addr++;
-		for (i = 8; i; i--)
-		{
-			mix = (crc ^ inbyte) & 0x01;
+uint8_t OneWire_CRC8( uint8_t *addr, uint8_t len)
+{
+	uint8_t crc = 0;
+	
+	while (len--) {
+		uint8_t inbyte = *addr++;
+		for (uint8_t i = 8; i; i--) {
+			uint8_t mix = (crc ^ inbyte) & 0x01;
 			crc >>= 1;
-			if (mix)
-			{
-				crc ^= 0x8C;
-			}
+			if (mix) crc ^= 0x8C;
 			inbyte >>= 1;
 		}
 	}
-
 	return crc;
 }
 

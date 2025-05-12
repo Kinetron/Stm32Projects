@@ -117,6 +117,7 @@ void readTemperature()
   if(tempControlData.isInit)
   {
     DS18B20_Init(DS18B20_Resolution_12bits);
+    //DS18B20_Init(DS18B20_Resolution_9bits);
     tempControlData.isInit = false;
     return;
   }  
@@ -136,14 +137,15 @@ void readTemperature()
   requestTemperatureSoftTimer.disabled = false;
   tempControlData.errorCode = 0;
 
-  if(DS18B20_GetValidDataFlag(0))
-  {   
-    tempControlData.tempature = DS18B20_GetTemperature(0);
-  }
-  else
+  tempControlData.tempature = DS18B20_GetTemperature(0);
+
+  if(!DS18B20_GetValidDataFlag(0))
   {
-   tempControlData.errorCode = CrcError;
-   reInitBus();
+    //ignore crc for bad ds18b20 work only 5v.
+    #ifndef USE_BAD_SENSOR 
+     tempControlData.errorCode = CrcError; 
+     reInitBus();
+    #endif
   }
 }
 
