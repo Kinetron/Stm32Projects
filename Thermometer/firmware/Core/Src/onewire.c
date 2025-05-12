@@ -397,5 +397,5 @@ void OneWire_ConfigReadPin()
 	GPIO_InitStruct.Pull = GPIO_NOPULL; // No pullup - the pullup resistor is external
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM; // Medium GPIO frequency
 	GPIO_InitStruct.Pin = OwInputPin; // Pin for 1-Wire bus
-	HAL_GPIO_Init(DS18B20_Pin_GPIO_Port, &GPIO_InitStruct);
+	HAL_GPIO_Init(OwInputPin_GPIO_Port, &GPIO_InitStruct);
 }

@@ -279,6 +279,7 @@ Ds18b20Sensor_t DS18B20_GetSensorData(uint8_t number)
 void DS18B20_Init(DS18B20_Resolution_t resolution)
 {
 	uint8_t next = 0, i = 0, j;
+	TempSensorCount = 0;
  
 	OneWire_Init(&OneWire, DS18B20_Pin_GPIO_Port, DS18B20_Pin_Pin); // Init OneWire output.
  #ifdef USE_TWO_PINS 	
@@ -302,4 +303,9 @@ void DS18B20_Init(DS18B20_Resolution_t resolution)
 	}
 }
 
+//Set low on line. All sensor off.
+void DS18B20_LowLine()
+{
+   OneWire_OutputLow(&OneWire);  // Write bus output low	
+}
 

@@ -7,7 +7,6 @@
 #include "stdio.h"
 #include "led.h"
 #include "ControlLogic.h"
-#include "PulseSender.h"
 
 extern IWDG_HandleTypeDef hiwdg;
 
@@ -31,15 +30,13 @@ void loop(void)
 {  
    if(secondTimerHandler == true)
    {
-    //readTemperature();
-    displayValue = 4092;
+    readTemperature();
+    displayValue = getDisplayData();
    
-    //secondHanler(); 
     secondTimerHandler = false;
    }
 
-   ledDisplayHandler(displayValue);
-   //encoderHandler();    
+   ledDisplayHandler(displayValue); 
    
    HAL_IWDG_Refresh(&hiwdg);    
   }
@@ -59,13 +56,5 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
  if (htim->Instance == TIM3)
  { 
    dynamicIndication();
-    
-    //blinkLedTimerHandler();
-    //buttonHandler();
  }
-
- if (htim->Instance == TIM4)
- { 
-    //pulseSenderHandler();  
- } 
 }

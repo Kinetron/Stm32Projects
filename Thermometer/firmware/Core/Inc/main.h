@@ -34,20 +34,17 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 //For single pin mode.
-#define DS18B20_Pin_Pin GPIO_PIN_9 //GPIO_PIN_2  outout in two pins mode.
-#define DS18B20_Pin_GPIO_Port GPIOA
+#define DS18B20_Pin_Pin GPIO_PIN_15 //outout in two pins mode.
+#define DS18B20_Pin_GPIO_Port GPIOB
 
 //Use an external buffer on hef4001.
-#define USE_TWO_PINS
+//#define USE_TWO_PINS
 
 //Two pins mode.
-#define OwInputPin GPIO_PIN_10
+#define OwInputPin_GPIO_Port GPIOA
+#define OwInputPin GPIO_PIN_8
 
-#define HEATER_GPIO GPIOC 
-#define HEATER_PIN GPIO_PIN_14
-
-#define BUTTON_GPIO GPIOC 
-#define BUTTON_PIN GPIO_PIN_13
+//#define TWO_DIGITS_PRECISION
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

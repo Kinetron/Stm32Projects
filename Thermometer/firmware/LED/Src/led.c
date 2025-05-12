@@ -6,6 +6,8 @@ uint8_t pointData; //which digits the dot be displayed
 uint8_t displayArray[4] = {0, 0, 0};
 uint8_t displayBuffer[4] = {0, 0, 0};
 uint8_t currentSegment; //For dynamic led.
+bool minusOn;
+
 bool needBlink;
 
 uint16_t blinkLedTimer;
@@ -52,7 +54,7 @@ void hexToDec(uint16_t value)
 		digits[0]++;
 	}	
  
-  //offZeros(digits);
+  offZeros(digits);
   memcpy(displayArray, digits, 4);
 }
 
@@ -94,7 +96,7 @@ void digToSegments(uint8_t dig, uint8_t point)
 void offZeros(uint8_t *arr)
 {
   bool msbZero = true;
-  for (uint8_t i = 2; i > 0; i--)
+  for (uint8_t i = 3; i > 0; i--)
   {
      if(!msbZero)
      {
@@ -265,11 +267,16 @@ void dynamicIndication()
      break;
 
      case 3:
+       if(minusOn)
+       {
+          displayBuffer[3] = MINUS_LATTER;
+       } 
+
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET); //Off segment 1
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET); //Off segment 2
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET); //Off segment 3
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //On segment 4
-       pointOn = (pointData & 0x04) >> 2;
+       pointOn = (pointData & 0x08) >> 2;
        digToSegments(displayBuffer[3], pointOn);
        currentSegment = 0;    
      break; 
@@ -289,4 +296,17 @@ void setPoints(uint8_t data)
 void blinkDigits(bool on)
 {
   needBlink = on;
+}
+
+//On/Off minus in 4 digits.
+void onMinus(bool on)
+{
+  if(on)
+  {
+    minusOn = true;
+  }
+  else
+  {
+    minusOn = false;
+  }  
 }

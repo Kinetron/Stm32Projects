@@ -89,9 +89,9 @@ int main(void)
   MX_GPIO_Init();
   initLed();
   //MX_DMA_Init(); 
-  //MX_TIM2_Init();  //Encoder
+  //MX_TIM2_Init();//Encoder
   MX_TIM3_Init(); 
-  MX_TIM4_Init();
+  //MX_TIM4_Init();
   MX_IWDG_Init();
   MX_TIM1_Init();
  // MX_USART1_UART_Init();

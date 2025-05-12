@@ -2,5 +2,6 @@
 
 enum ErrorCodes
 {
-    NoSensor //E1
+    NoSensor = 1, //E0
+    CrcError = 2 //E1
 };

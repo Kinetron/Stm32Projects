@@ -13,6 +13,8 @@ _BEGIN_STD_C
 
 #define BLINK_LED_INTERVAL 40
 
+#define MINUS_LATTER 10
+
 #define E_LATTER 15
 #define F_LATTER 16
 #define L_LATTER 17
@@ -79,5 +81,8 @@ void setPoints(uint8_t data);
 
 //On/Off blink digits.
 void blinkDigits(bool on);
+
+//On/Off minus in 4 digits.
+void onMinus(bool on);
 
 _END_STD_C

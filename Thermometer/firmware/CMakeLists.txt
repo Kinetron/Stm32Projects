@@ -41,9 +41,7 @@ add_executable(${PROJECT_NAME})
 add_subdirectory(Core)
 add_subdirectory(User)
 add_subdirectory(ControlLogic)
-add_subdirectory(EEPROM)
 add_subdirectory(LED)
-add_subdirectory(PulseSender)
 
 target_link_libraries(${PROJECT_NAME}
     HAL::STM32::${MCU_FAMILY}::RCC
