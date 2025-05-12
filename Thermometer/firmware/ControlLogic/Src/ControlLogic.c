@@ -84,14 +84,7 @@ uint8_t switchDecimalPoint(float temperature)
   }
   else
   {
-    if(temperature <= 99.9)
-    {
-      return 2;
-    }
-    else
-    {
-      return 0;
-    }
+    return 2;
   }  
 }
 
@@ -241,8 +234,12 @@ float displayTemperatureTest()
     return -55.39;
 
     case 5:
-     ledTestData.cnt = 0;
+     ledTestData.cnt = 6;
     return 89.10;
+
+    case 6:
+     ledTestData.cnt = 0;
+    return 0.27;
 
    default:
     break;

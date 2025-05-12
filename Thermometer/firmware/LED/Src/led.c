@@ -96,7 +96,7 @@ void digToSegments(uint8_t dig, uint8_t point)
 void offZeros(uint8_t *arr)
 {
   bool msbZero = true;
-  for (uint8_t i = 3; i > 0; i--)
+  for (uint8_t i = 3; i > 1; i--)
   {
      if(!msbZero)
      {

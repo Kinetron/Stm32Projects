@@ -9,21 +9,8 @@
 #include "ds18b20.h"
 #include "ErrorCodes.h"
 
-
-#define DELAY_BEFORE_WRITE_TO_FLASH 5
-#define COUNT_TICKS_BUTTON_IS_PRESSED 50 //how long does the tap btn count as active
-#define DELAY_BEFORE_WRITE_ROOM_ADDR 30 //If the device is not initialized and one sensor is connected, then after this time it will be considered as a room sensor.
-
-#define DELAY_USE_SLOW_TEMPERATURE_INTERVAL 10 //The time after run when reads temperature overy second.
-#define READ_TEMPERATURE_INTERVAL 9 //every 7 second read temperature.
-
-#define FLASH_T0_ADDRESS_POS 0  //8byte ds18b20 address hot water temperature sensor.
-#define FLASH_SET_TEMPERATURE_POS 9 //Set room temperature. 2 byte
-
-#define DEFAULT_SET_TEMPERATURE 300//251  //25.1 degree celsius
-#define DS18B20_ADDR_SIZE 8
-
-#define PERIOD_SHOW_SETTINSG 3
+#define DELAY_USE_SLOW_TEMPERATURE_INTERVAL 60 //The time after run when reads temperature overy second.
+#define READ_TEMPERATURE_INTERVAL 20 //every 20 second read temperature.
 
 #define OW_LINE_PAUSE 2
 
