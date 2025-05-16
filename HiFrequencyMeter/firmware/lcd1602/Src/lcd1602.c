@@ -7,7 +7,7 @@
 #define RW_Pin GPIO_PIN_10
 #define RW_GPIO_Port GPIOB
 
-#define EN_Pin GPIO_PIN_8
+#define EN_Pin GPIO_PIN_11
 #define EN_GPIO_Port GPIOA
 
 #define D4_Pin GPIO_PIN_12
@@ -20,7 +20,7 @@
 #define D7_GPIO_Port GPIOB
 
 /****************** define the timer handler below  **************/
-#define timer htim1
+#define timer htim4
 
 extern TIM_HandleTypeDef timer;
 

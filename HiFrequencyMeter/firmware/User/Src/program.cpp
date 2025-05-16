@@ -1,3 +1,11 @@
+/*
+For test use MCO output PA8
+Input frequency to TIM2_ETR (PA0)
+TIM1 - measured interval 1sec
+
+Without a divider, we can measure the max frequency 72/3 = 24Mhz
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +16,7 @@
 #include "lcd1602.h"
 
 extern IWDG_HandleTypeDef hiwdg;
+extern TIM_HandleTypeDef htim1;
 
 volatile uint32_t TimeTickMs = 0;
 uint32_t oldTimeTickHSec = 0;
@@ -17,9 +26,11 @@ uint16_t displayValue;
 
 bool isInit;
 uint16_t testCounter;
-char lcdBuffer[10];
+uint16_t testCounter1;
+uint32_t frequency;
+char lcdBuffer[20];
 
-#define DELAY_VALUE 5
+#define DELAY_VALUE 1
 struct delayTimerData_t
 {
   uint16_t counter;
@@ -49,7 +60,7 @@ void loop(void)
     lcd_send_string("Hello from ");
 
     lcd_put_cur(1, 0);
-    lcd_send_string("another world");
+    lcd_send_string("freq");
 
     isInit = true;
   }
@@ -66,11 +77,14 @@ void loop(void)
 
      lcd_clear();
     
-     sprintf(lcdBuffer, "%d", testCounter);
+     snprintf(lcdBuffer, 20, "%lu Hz", frequency);
      lcd_put_cur(0, 0);
      lcd_send_string(lcdBuffer); 
 
-    testCounter ++;
+     sprintf(lcdBuffer, "%d", testCounter1);
+     lcd_put_cur(1, 0);
+     lcd_send_string(lcdBuffer); 
+
 
     secondTimerHandler = false;
    }
@@ -89,6 +103,16 @@ void HAL_SYSTICK_Callback(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {   
+  if(htim->Instance == TIM1)
+	{
+    frequency = TIM2->CNT + (TIM3->CNT << 16); 
+    HAL_TIM_Base_Stop_IT(&htim1);
+    
+    testCounter1 ++;
+    TIM2->CNT = 0;
+    TIM3->CNT = 0;
+    HAL_TIM_Base_Start_IT(&htim1);
+  }
  if (htim->Instance == TIM3)
  { 
 
