@@ -44,6 +44,9 @@ void MX_TIM2_Init(void);
 void MX_TIM3_Init(void);
 void MX_TIM4_Init(void);
 
+uint32_t GetTim2ClockPrescaler();
+void SetClockPrescaleTim2(uint32_t clockPrescaler);
+
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
