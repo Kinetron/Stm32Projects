@@ -37,9 +37,9 @@ extern "C" {
 #define RANGE_BTN_GPIO GPIOB
 #define RANGE_BTN_PIN GPIO_PIN_5
 
-//#define USE_BAD_SENSOR //If ds18b20 work only 5v and 2.7k pull up.
+//Only for test! PA8 Can't work as output in low freq mode. It can be damaging when output connect to external output.
+#define ENABLED_MCO
 
-//#define TWO_DIGITS_PRECISION
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

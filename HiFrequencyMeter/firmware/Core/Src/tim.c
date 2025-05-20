@@ -390,3 +390,175 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+
+//Period measurement mode(0 -100Hz)
+void SwitchToPeriodMeasureMode()
+{
+  HAL_TIM_Base_Stop(&htim1); //Off one pulse mode.
+	HAL_TIM_Base_DeInit(&htim1);
+
+  HAL_TIM_Base_Stop(&htim2);
+	HAL_TIM_Base_DeInit(&htim2);
+
+  HAL_TIM_Base_Stop(&htim3);
+	HAL_TIM_Base_DeInit(&htim3);
+  MX_TIM2_CaptureInit();
+  MX_TIM3_CaptureInit();
+ 
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
+
+  HAL_TIM_Base_Start(&htim3);
+}
+
+//For low frequency measurement range
+/* TIM2 init function */
+void MX_TIM2_CaptureInit(void)
+{
+  /* USER CODE BEGIN TIM2_Init 0 */
+  __HAL_RCC_TIM2_CLK_ENABLE();
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 65535;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICFilter = 0;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**TIM2 GPIO Configuration
+    PB10     ------> TIM2_CH3
+    PB11     ------> TIM2_CH4
+    */
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = GPIO_PIN_10;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+ 
+    __HAL_AFIO_REMAP_TIM2_PARTIAL_2();
+
+    /* TIM2 interrupt Init */
+    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM2_IRQn);
+}
+
+/* TIM3 init function */
+void MX_TIM3_CaptureInit(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+      __HAL_RCC_TIM3_CLK_ENABLE();
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+  sSlaveConfig.InputTrigger = TIM_TS_ITR1;
+  if (HAL_TIM_SlaveConfigSynchro(&htim3, &sSlaveConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+    HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM3_IRQn);
+}
+
+//Normal mode
+void SwitchToFrequencyMeasureMode()
+{
+  HAL_TIM_Base_Stop(&htim1);
+	HAL_TIM_Base_DeInit(&htim1);
+
+  HAL_TIM_Base_Stop(&htim2);
+	HAL_TIM_Base_DeInit(&htim2);
+
+  HAL_TIM_Base_Stop(&htim3);
+	HAL_TIM_Base_DeInit(&htim3);
+
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  /**TIM2 GPIO Configuration    
+   PA0-WKUP     ------> TIM2_ETR 
+  */
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  MX_TIM3_Init();
+  MX_TIM1_Init();
+  MX_TIM2_Init();
+
+  HAL_NVIC_SetPriority(TIM1_UP_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
+  
+  HAL_TIM_Base_Start_IT(&htim1);
+  HAL_TIM_Base_Start(&htim2);
+  HAL_TIM_Base_Start(&htim3);
+}
+
+//Сlears values in counters.
+void ClearPeriodCounters()
+{
+  __HAL_TIM_SET_COUNTER(&htim2, 0x0000);
+  __HAL_TIM_SET_COUNTER(&htim3, 0x0000);
+}

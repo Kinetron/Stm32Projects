@@ -44,8 +44,20 @@ void MX_TIM2_Init(void);
 void MX_TIM3_Init(void);
 void MX_TIM4_Init(void);
 
+//For low frequency measurement range
+void MX_TIM2_CaptureInit(void);
+void MX_TIM3_CaptureInit(void);
+
 uint32_t GetTim2ClockPrescaler();
 void SetClockPrescaleTim2(uint32_t clockPrescaler);
+
+//Period measurement mode(0 -100Hz)
+void SwitchToPeriodMeasureMode();
+//Normal mode
+void SwitchToFrequencyMeasureMode();
+
+//Сlears values in counters.
+void ClearPeriodCounters();
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 

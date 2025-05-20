@@ -49,10 +49,12 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PA8 - MCO*/
   //Enabled only for test!
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  #ifdef ENABLED_MCO 
+    GPIO_InitStruct.Pin = GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  #endif
 
   //Range btn.
   GPIO_InitStruct.Pin = RANGE_BTN_PIN;
@@ -60,6 +62,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(RANGE_BTN_GPIO, &GPIO_InitStruct);
+
+  //Enabled only for test! Low freq test
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 }
 
 /* USER CODE BEGIN 2 */

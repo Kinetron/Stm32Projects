@@ -151,7 +151,10 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  HAL_RCC_MCOConfig(RCC_MCO, RCC_MCO1SOURCE_HSE, RCC_MCODIV_1);
+  
+  #ifdef ENABLED_MCO
+    HAL_RCC_MCOConfig(RCC_MCO, RCC_MCO1SOURCE_PLLCLK, RCC_MCODIV_1);
+  #endif  
 }
 
 /* USER CODE BEGIN 4 */

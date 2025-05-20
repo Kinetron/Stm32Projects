@@ -18,6 +18,7 @@ Without a divider, we can measure the max frequency 72/3 = 24Mhz
 
 #define READ_BTN_PERIOD 15000
 #define LCD_BUFF_SIZE 16
+#define MAX_CAPTURE_WAIT 2
 
 extern IWDG_HandleTypeDef hiwdg;
 extern TIM_HandleTypeDef htim1;
@@ -33,25 +34,29 @@ bool isInit;
 uint32_t frequency;
 uint32_t mul;
 
+float lowFrequency;
+
+uint32_t tim2Value, tim3Value;
+uint64_t timer32Register; //32 bit register for measuring values. Min freq 0.13hz
+bool isFirstCaptured;
+bool haslowFreqValue;
+bool enableLowFreqRange; //0-100Hz
+
+uint8_t waitCaptureTimer;
+
 char lcdBuffer[LCD_BUFF_SIZE];
 char tmpBuffer[LCD_BUFF_SIZE];
 char lcdBufferLine1[LCD_BUFF_SIZE];
-
-#define DELAY_VALUE 1
-struct delayTimerData_t
-{
-  uint16_t counter;
-};
 
 enum ranges
 {
   RANGE_24Mhz,
   RANGE_48Mhz,
   RANGE_96Mhz,
-  RANGE_190Mhz
+  RANGE_190Mhz,
+  RANGE_LOW_FREQ
 };
 
-delayTimerData_t delayTimerData;
 struct readBtnRate_t
 {
    uint32_t readBtnTimerCnt;
@@ -136,11 +141,22 @@ void switchRange()
          mul = 8;
 			break;
 
-      case RANGE_190Mhz + 1:
-      SetClockPrescaleTim2(TIM_CLOCKPRESCALER_DIV1);
-      sprintf(lcdBufferLine1, "24Mhz");
-      mul = 1;
-      currentRange = 0;
+      case RANGE_LOW_FREQ:        
+        enableLowFreqRange = true; //0-100Hz
+        sprintf(lcdBufferLine1, "LowFreq");
+
+        SwitchToPeriodMeasureMode(); //Reconfig timers.
+        ClearPeriodCounters();
+      break;
+
+      case RANGE_LOW_FREQ + 1:
+       SwitchToFrequencyMeasureMode();
+       SetClockPrescaleTim2(TIM_CLOCKPRESCALER_DIV1);
+       sprintf(lcdBufferLine1, "24Mhz");
+       mul = 1;
+       currentRange = 0;
+       enableLowFreqRange = false;
+       ClearPeriodCounters();
       break;
 
 			default:
@@ -200,6 +216,37 @@ void formatFreq()
     spaceBefore(lcdBuffer, LCD_BUFF_SIZE - 1);
 }
 
+bool endWaitCapture()
+{
+  if(waitCaptureTimer < MAX_CAPTURE_WAIT)
+  {
+    waitCaptureTimer++;
+  }
+  else
+  {
+    waitCaptureTimer = 0;
+    return true;
+  }
+
+   return false;
+}
+
+void calculateLowFrequency()
+{
+   if(!haslowFreqValue)
+   {
+    return;
+   }
+
+   if(tim2Value == 0 && tim3Value == 0)
+   {
+    lowFrequency = 0;
+    return;  
+   }
+   timer32Register = tim2Value + (tim3Value * 65535);
+   lowFrequency = (float)72000000 / ((float)timer32Register);
+}
+
 //
 /**
  * \brief   It is performed periodically in the body of the main loop.
@@ -208,29 +255,39 @@ void formatFreq()
 void loop(void)
 { 
   HAL_IWDG_Refresh(&hiwdg); 
-
-   if(secondTimerHandler == true)
+  calculateLowFrequency();
+  
+  if(secondTimerHandler == true)
    {
-      //Wait, befor show count.
-     if(delayTimerData.counter < DELAY_VALUE)
-     {
-      delayTimerData.counter ++;
-      secondTimerHandler = false;
-      return;
-     } 
-
      lcd_clear();
     
-     frequency = frequency * mul;
-     snprintf(tmpBuffer, 20, "%lu", frequency); //lcdBuffer
-     formatFreq();
-     lcd_put_cur(0, 0); 
-     lcd_send_string(lcdBuffer); 
+     if(!enableLowFreqRange)
+     {
+       frequency = frequency * mul;
+       snprintf(tmpBuffer, 20, "%lu", frequency); //lcdBuffer
+       formatFreq();      
+     }
+     else
+     {
+       if(endWaitCapture())
+       {
+         tim2Value = 0;
+         tim3Value = 0;
+         ClearPeriodCounters();
+         lowFrequency = 0;
+       }
+      
+       snprintf(lcdBuffer, 16, "%.3f Hz", lowFrequency);
+     }
 
-     lcd_put_cur(1, 0);
-     lcd_send_string(lcdBufferLine1); 
+      lcd_put_cur(0, 0); 
+      lcd_send_string(lcdBuffer); 
 
+      lcd_put_cur(1, 0);
+      lcd_send_string(lcdBufferLine1); 
+     
     secondTimerHandler = false;
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
    }
 
    if(readButton())
@@ -268,4 +325,30 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
  { 
 
  }
+}
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM2)
+    {
+        if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+        {
+            waitCaptureTimer = 0;
+            if(!isFirstCaptured)
+            {
+              TIM3->CNT = 0;
+              TIM2->CNT = 0;
+              isFirstCaptured = true;
+            } 
+            else
+            {
+              haslowFreqValue  = false;
+              tim2Value = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
+              tim3Value = TIM3->CNT;
+              haslowFreqValue  = true;
+
+              isFirstCaptured = false;
+            }
+          }
+     }
 }
