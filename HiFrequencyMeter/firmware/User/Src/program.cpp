@@ -43,6 +43,8 @@ bool haslowFreqValue;
 bool enableLowFreqRange; //0-100Hz
 
 uint8_t waitCaptureTimer;
+bool hasSysTick;
+uint8_t lowFreqGenCnt;
 
 char lcdBuffer[LCD_BUFF_SIZE];
 char tmpBuffer[LCD_BUFF_SIZE];
@@ -287,7 +289,7 @@ void loop(void)
       lcd_send_string(lcdBufferLine1); 
      
     secondTimerHandler = false;
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+
    }
 
    if(readButton())
@@ -295,7 +297,21 @@ void loop(void)
       switchRange();
       secondTimerHandler = true; //For fast update screen
    }
-    
+   
+   if(!hasSysTick)
+   {
+    return;
+   }
+   if(lowFreqGenCnt <100)
+   {
+    lowFreqGenCnt++;
+   }
+   else
+   {
+     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+     lowFreqGenCnt = 0;
+    hasSysTick = false;
+   }
 }
 
 void HAL_SYSTICK_Callback(void)
@@ -305,7 +321,9 @@ void HAL_SYSTICK_Callback(void)
     {
       oldTimeTickHSec = TimeTickMs;
       secondTimerHandler = true;
-    }    
+    }
+   
+    hasSysTick = true;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
