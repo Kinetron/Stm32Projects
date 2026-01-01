@@ -110,7 +110,7 @@ uint8_t DS18B20_Read(uint8_t number, float *destination)
 			result = temperature*(float)DS18B20_STEP_11BIT;
 		break;
 		case DS18B20_Resolution_12bits:
-			result = temperature*(float)DS18B20_STEP_12BIT;
+			result = (float)((int16_t)temperature) * DS18B20_STEP_12BIT;
 		 break;
 		default:
 			result = 0xFF;

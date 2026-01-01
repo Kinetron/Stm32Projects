@@ -1,6 +1,10 @@
 # Stm32Projects
 Projects on microcontroller STM32 
 
+To set up the development environment,
+follow [these](INSTALL.md) instructions.
+
+
 ## Turning off the hard drive when the battery is low
 
 My DVR is powered by 12 volts.
