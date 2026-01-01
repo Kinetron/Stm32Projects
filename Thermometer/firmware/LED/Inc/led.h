@@ -24,34 +24,7 @@ _BEGIN_STD_C
 #define R_LATTER 23
 #define U_LATTER 24
 
-const uint8_t ledMatrix[LED_MATRIX_SIZE] =
-{
-  0x0A, //0
-  0x7B, //1
-  0x26, //2
-  0x62, //3
-  0x53, //4
-  0xC2, //5
-  0x82, //6
-  0x6b, //7
-  0x02, //8
-  0x42, //9
-  0xF7, //-
-  0x03, //A 
-  0x92, //b
-  0x8E, //C
-  0x32, //d
-  0x86, //E
-  0x87, //F
-  0x9E, //L
-  0x8F, //L mirror
-  0x13, //H
-  0xFD, //off segment
-  0xB3, //n
-  0xB2, //o
-  0xb7, //r
-  0xBA //u
-};
+extern const uint8_t ledMatrix[LED_MATRIX_SIZE];
 
 void initLed();
 

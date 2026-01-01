@@ -8,6 +8,7 @@
 #include "main.h"
 #include "ds18b20.h"
 #include "ErrorCodes.h"
+#include "led.h"
 
 #define DELAY_USE_SLOW_TEMPERATURE_INTERVAL 60 //The time after run when reads temperature overy second.
 #define READ_TEMPERATURE_INTERVAL 20 //every 20 second read temperature.

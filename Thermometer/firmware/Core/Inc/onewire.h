@@ -84,5 +84,10 @@ uint8_t OneWire_CRC8(uint8_t* addr, uint8_t len);
 //For two pins mode. Init RX pin.
 void OneWire_ConfigReadPin();
 
+//
+//	Bus pin output state control
+//
+void OneWire_OutputLow(OneWire_t *onewire);
+
 #endif
 
